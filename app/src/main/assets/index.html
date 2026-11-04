@@ -183,8 +183,8 @@ h2{font-size:30px;font-weight:800}
 <script>
 /* ---------- datos ---------- */
 const NUMW=['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'];
-const NUMX={1:['un','una'],6:['ceis'],7:['ciete'],10:['dies']};
-const NUM=NUMW.map((w,i)=>({id:'n'+i,track:'num',show:String(i),name:w,n:i,accept:[String(i),w,...(NUMX[i]||[])]}));
+const NUMX={0:['zero','sero'],1:['un','una','uno.'],2:['dos','tos','dios','doss','vos','los dos','2 2'],3:['tres','tren','tras','tre','tez','pres','3 3'],4:['cuatro','cuarto','quatro'],5:['cinco','sinco','zinco','cinto'],6:['seis','ceis','reis','says'],7:['siete','ciete','sieste'],8:['ocho','o cho','hecho'],9:['nueve','nueva','mueve','nueces'],10:['diez','dies','diez.','dice']};
+const NUM=NUMW.map((w,i)=>({id:'n'+i,track:'num',show:String(i),name:w,n:i,fuzzy:true,accept:[String(i),w,...(NUMX[i]||[])]}));
 const VOW=[['A','a','abeja','🐝',['a','ah','ha','abeja']],['E','e','elefante','🐘',['e','eh','he','elefante']],['I','i','isla','🏝️',['i','y','hi','isla']],['O','o','oso','🐻',['o','oh','ho','oso']],['U','u','uvas','🍇',['u','uh','hu','uvas','uva']]]
  .map(([L,name,word,pic,acc])=>({id:'v'+L,track:'vow',show:L,low:L.toLowerCase(),name,word,pic,starts:true,accept:acc}));
 const CX={M:['m'],P:['p'],S:['s'],L:['l'],T:['t'],D:['d'],N:['n'],F:['f'],B:['b','ve','v','be larga','be alta'],C:['c','se'],R:['r','ere'],G:['g','je'],J:['j'],V:['v','ve','be','ve corta','ve pequena','uve'],H:['h','ache'],K:['k','ca'],'Ñ':[],Q:['q','ku'],X:['x'],Y:['y','i griega','lle'],Z:['z','seta','ceta'],W:['w','doble ve','doble u','doble uve']};
@@ -251,7 +251,7 @@ const sfx={
  win:()=>{tone([523,659,784,1046,1318],.12);setTimeout(()=>claps(),500)}
 };
 let VOICE=null;
-function pickVoice(){try{const vs=speechSynthesis.getVoices();VOICE=vs.find(v=>/^es[-_](CO|MX|US|419)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}catch(e){}}
+function pickVoice(){try{const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));const sc=v=>(/(CO)$/i.test(v.lang)?6:/(MX|US|419|AR|CL|PE|VE)$/i.test(v.lang)?5:0)+(/google/i.test(v.name)?2:0)+(/natural|online/i.test(v.name)?1:0);VOICE=vs.sort((a,b)=>sc(b)-sc(a))[0]||null}catch(e){}}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 const NB=window.PasitosNative||null;
 function hush(){try{NB?NB.stop():speechSynthesis.cancel()}catch(e){}}
@@ -263,7 +263,7 @@ function say(text){return new Promise(res=>{let done=false;const fin=()=>{if(!do
 const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micBroken=false;
 const micOn=()=>S.mic&&(!!NB||!!SRC)&&!micBroken;
-function listen(){if(NB)return new Promise(res=>{const tm=setTimeout(()=>{window.__sr=null;res([])},9000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
+function listen(onReady){if(NB)return new Promise(res=>{window.__srReady=()=>{onReady&&onReady()};const tm=setTimeout(()=>{window.__sr=null;res([])},10000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
  return new Promise(res=>{let r;try{r=new SRC()}catch(e){micBroken=true;return res(null)}
  r.lang='es-CO';r.interimResults=false;r.maxAlternatives=5;r.continuous=false;
  const out=[];let settled=false;const fin=v=>{if(!settled){settled=true;clearTimeout(tm);res(v)}};
@@ -273,7 +273,13 @@ function listen(){if(NB)return new Promise(res=>{const tm=setTimeout(()=>{window
  const tm=setTimeout(()=>{try{r.stop()}catch(e){}},7000);
  try{r.start()}catch(e){micBroken=true;fin(null)}})}
 const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
-function matches(it,alts){const acc=it.accept.map(norm);return alts.some(a=>{const n=norm(a),tk=n.split(' ');return acc.some(w=>w&&(n===w||tk.includes(w)||(w.length>=3&&n.includes(w))))})}
+function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>2)return 9;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function matches(it,alts){const acc=it.accept.map(norm).filter(Boolean);
+ return alts.some(a=>{const n=norm(a),tk=n.split(' ');
+  if(acc.some(w=>n===w||tk.includes(w)||(w.length>=3&&n.includes(w))))return true;
+  if(it.fuzzy){const main=norm(it.name);if(tk.some(t=>t.length>=3&&lev(t,main)<=1))return true}
+  else if(it.word){const wd=norm(it.word);if(tk.some(t=>t.length>=4&&lev(t,wd)<=1))return true}
+  return false})}
 
 /* ---------- utilidades ---------- */
 const app=document.getElementById('app');
@@ -438,7 +444,7 @@ function next(firstTry){const st=cur();
 
 async function onMic(){const st=cur();if(busy||!micOn())return;const tok=stepToken;busy=true;
  const btn=app.querySelector('.mic'),lab=document.getElementById('micLabel');btn?.classList.add('listening');if(lab)lab.textContent='Te escucho…';
- hush();const alts=await listen();if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
+ hush();if(lab)lab.textContent=NB?'Preparando…':'¡Habla ahora!';const alts=await listen(()=>{if(lab&&tok===stepToken)lab.textContent='¡Habla ahora!'});if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
  if(alts===null){toast('El micrófono no está disponible aquí. Un adulto puede confirmar con los botones.');renderLesson();return}
  const h=document.getElementById('heard');if(h)h.textContent=alts.length?`Escuché: “${alts[0]}”`:'No escuché nada';
  if(lab)lab.textContent='Toca y dilo';
@@ -503,6 +509,13 @@ function renderResult(){const {stars,capture,medal,escaped}=L.result,mix=L.track
  <button class="cta alt" data-act="${mix?'home':'backmap'}">${mix?'Inicio':'Ver niveles'}</button></div></section>`}
 
 /* ---------- panel de padres ---------- */
+function nativeVoices(){try{return JSON.parse(NB.voices())}catch(e){return[]}}
+function voiceRow(){const vs=nativeVoices();if(!vs.length)return '<div class="toggle"><span>Voz<br><small style="color:var(--ink-soft)">No hay voces en español instaladas. Instala una en Ajustes del celular → Salida de texto a voz.</small></span></div>';
+ const cur=NB.currentVoice?NB.currentVoice():'';
+ return `<div class="toggle" style="flex-wrap:wrap"><label for="voiceSel">Voz de la app<br><small style="color:var(--ink-soft)">Las marcadas como Latina suenan con acento latino</small></label>
+ <select id="voiceSel" style="font:inherit;font-weight:700;padding:10px;border-radius:12px;border:2px solid var(--line);max-width:100%;min-width:0;flex:1">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?'selected':''}>${v.latam?'Latina':'España/otra'} · ${esc(v.locale)}${v.net?' · requiere internet':''} · ${esc(v.name.split('#').pop().slice(-12))}</option>`).join('')}</select>
+ <button class="pbtn" data-testvoice>Probar</button></div>
+ ${vs.some(v=>v.latam)?'':'<p style="font-size:14px">No hay voz latina instalada. En el celular ve a Ajustes → Idioma → Salida de texto a voz → Motor de Google → Instalar datos de voz → Español (Estados Unidos). Esa es la voz latina de Google.</p>'}`}
 function openParents(){
  const seen=Object.keys(S.box).filter(id=>ITEM[id]);const strong=seen.filter(id=>S.box[id]>=3).length;
  const d=document.createElement('div');d.className='sheet';
@@ -515,6 +528,7 @@ function openParents(){
  <li><b>Pocos a la vez.</b> 1 a 4 símbolos nuevos por nivel, mezclados con los anteriores. Sesiones de 3 a 5 minutos rinden más que una larga.</li></ol>
  <div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Criaturas capturadas</span><span>${S.caught.length} de ${Object.keys(MONS).length}</span><span>Medallas</span><span>${S.medals.length} de ${MEDALS.length}</span>
  ${seen.length?`<span>Por reforzar</span><span>${seen.filter(id=>S.box[id]<2).map(id=>ITEM[id].show).join(' ')||'—'}</span>`:''}</div>
+ ${NB&&NB.voices?voiceRow():''}
  <div class="toggle"><span>Usar micrófono<br><small style="color:var(--ink-soft)">${(NB||SRC)?(micBroken?'Bloqueado en esta vista: usa la app instalada':'Disponible'):'Este navegador no reconoce voz'}</small></span><button class="switch" role="switch" aria-checked="${S.mic}" data-k="mic" aria-label="Usar micrófono"></button></div>
  <div class="toggle"><span>Abrir todos los niveles</span><button class="switch" role="switch" aria-checked="${S.unlockAll}" data-k="unlockAll" aria-label="Abrir todos los niveles"></button></div>
  <div class="toggle"><span>Nombre: <b>${esc(S.name||"—")}</b></span><button class="pbtn" data-rename>Cambiar</button></div><button class="danger" data-reset>Borrar el progreso</button></div>`;
@@ -522,6 +536,7 @@ function openParents(){
  d.addEventListener('click',e=>{
   if(e.target===d||e.target.closest('[data-x]')){d.remove();render();return}
   const sw=e.target.closest('.switch');if(sw){const k=sw.dataset.k;S[k]=!S[k];if(k==='mic'&&S.mic)micBroken=false;sw.setAttribute('aria-checked',S[k]);save();return}
+  if(e.target.closest('[data-testvoice]')){const sel=d.querySelector('#voiceSel');if(sel){NB.setVoice(sel.value);S.voice=sel.value;save();say(fmt('¡Hola, entrenador {n}! Así suena mi voz. Vamos a aprender los números: uno, dos, tres.'))}return}
   if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
   const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
  })}
@@ -549,6 +564,8 @@ app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)re
  else if(a==='retry')startLesson(L.track,L.li);
  else if(a==='backmap')go('map',L.track);
 });
+if(NB&&S.voice&&NB.setVoice){setTimeout(()=>{try{NB.setVoice(S.voice)}catch(e){}},1500)}
+document.addEventListener('change',e=>{if(e.target.id==='voiceSel'&&NB){NB.setVoice(e.target.value);S.voice=e.target.value;save()}});
 render();
 </script>
 
