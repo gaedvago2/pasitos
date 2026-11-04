@@ -44,7 +44,7 @@ h2{font-size:30px;font-weight:800}
 .review{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:var(--ink);color:#fff;text-align:left;box-shadow:0 6px 0 #0B2930}
 .review b{font-family:var(--display);font-size:22px;display:block}
 .review small{opacity:.8;font-weight:700}
-.album{display:flex;flex-wrap:wrap;gap:8px}
+
 .album span{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:var(--paper);box-shadow:0 3px 0 var(--line)}
 .album span.empty{background:transparent;box-shadow:inset 0 0 0 2px var(--line)}
 
@@ -120,6 +120,40 @@ h2{font-size:30px;font-weight:800}
 @keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}
 .cheer{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--sun);color:var(--ink);font-family:var(--display);font-weight:800;font-size:20px;padding:10px 18px;border-radius:18px;box-shadow:0 5px 0 var(--sun-d);z-index:25;max-width:calc(100% - 32px);text-align:center;animation:pop2 .5s ease-out}
 .cheer.soft{background:var(--paper);box-shadow:0 5px 0 var(--line)}
+.trainer{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:14px 16px;border-radius:22px;background:linear-gradient(135deg,#16404A,#1F5E6B);color:#fff;box-shadow:0 6px 0 #0B2930}
+.trainer .cap{width:56px;height:56px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-size:30px;box-shadow:inset 0 -5px 0 var(--sun-d)}
+.trainer b{font-family:var(--display);font-size:22px;display:block;line-height:1.1}
+.trainer small{opacity:.85;font-weight:700;font-size:13px}
+.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.mon{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:16px;background:var(--paper);box-shadow:0 3px 0 var(--line);min-width:0}
+.mon span{font-size:30px;line-height:1.1}
+.mon small{font-size:11px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mon.unk{background:transparent;box-shadow:inset 0 0 0 2px var(--line)}
+.mon.unk span,.shadow{filter:brightness(0);opacity:.28}
+.medals{display:grid;grid-template-columns:repeat(4,minmax(0,60px));justify-content:space-between;gap:12px;padding:8px}
+.medal{aspect-ratio:1/1;max-width:100%;border-radius:50%;display:grid;place-items:center;font-size:26px;background:radial-gradient(circle at 35% 30%,#fff8,transparent 45%),var(--mc);box-shadow:0 0 0 4px #E8C35A,0 0 0 7px #B98A1F,0 4px 0 7px #8A6510}
+.medal.off{background:transparent;box-shadow:inset 0 0 0 3px var(--line);font-size:0}
+.medal-row{display:flex;align-items:center;gap:14px;text-align:left}
+.medal.big{width:96px;font-size:46px;flex:none;animation:pop2 .8s ease-out}
+.reward{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--ink-soft)}
+.reward span{font-size:24px}
+.cap-stage{position:relative;width:100%;max-width:340px;height:300px;margin:0 auto}
+.cap-grass{position:absolute;left:8%;right:8%;bottom:6px;height:40px;border-radius:50%;background:#B7E3C4;box-shadow:inset 0 -6px 0 #8FCFA3}
+.cap-mon{position:absolute;left:50%;top:40px;transform:translateX(-50%);font-size:120px;line-height:1;transition:transform .45s ease-in,filter .45s,opacity .45s;animation:bob 1.6s ease-in-out infinite}
+.cap-mon.gone{transform:translateX(-50%) scale(0);filter:brightness(4);opacity:0;animation:none}
+.cap-mon.free{animation:bob 1.6s ease-in-out infinite}
+.ball{position:absolute;left:50%;bottom:20px;width:76px;height:76px;margin-left:-38px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#9FF5E4,#21A38B 45%,#0E5E50);box-shadow:inset 0 -6px 0 #0B4A3F,0 6px 0 rgba(0,0,0,.12);display:grid;place-items:center}
+.ball::before{content:"";position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;background:#F2C14E;box-shadow:0 1px 0 #B98A1F}
+.ball svg{position:relative;width:34px;height:34px}
+.ball.throw{animation:throw .7s cubic-bezier(.3,.7,.4,1) forwards}
+.ball.land{bottom:140px;animation:land .45s ease-in forwards}
+.ball.wob{bottom:20px;animation:wob .5s ease-in-out}
+.ball.done{bottom:20px;box-shadow:0 0 0 6px #FFE58A,0 0 30px 10px #FFD54A}
+.cap-msg{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.15;margin:0;text-wrap:balance}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-10px)}}
+@keyframes throw{0%{bottom:20px;transform:rotate(0)}60%{bottom:200px}100%{bottom:140px;transform:rotate(720deg)}}
+@keyframes land{from{bottom:140px}to{bottom:20px}}
+@keyframes wob{25%{transform:rotate(-22deg)}75%{transform:rotate(22deg)}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:min(420px,calc(100% - 32px));z-index:30;text-align:center}
 
 /* padres */
@@ -163,18 +197,29 @@ const TRACKS={
  abc:{t:'Abecedario',sub:'Se abre al terminar las vocales',badge:'abc',c:'var(--leaf)',d:'var(--leaf-d)',items:CONS}
 };
 const LEVELS={
- num:[{t:'1 2 3',items:['n1','n2','n3'],st:'🐣'},{t:'4 5',items:['n4','n5'],st:'🐢'},{t:'6 7',items:['n6','n7'],st:'🦊'},{t:'8 9 10',items:['n8','n9','n10'],st:'🦁'},{t:'0',items:['n0'],st:'🚀'},{t:'Repaso',items:[],st:'🏆'}],
- vow:[{t:'A E',items:['vA','vE'],st:'🐝'},{t:'I',items:['vI'],st:'🐠'},{t:'O U',items:['vO','vU'],st:'🐻'},{t:'Todas',items:[],st:'🌈'}],
- abc:[{t:'M P S L',items:['cM','cP','cS','cL'],st:'🐙'},{t:'T D N F',items:['cT','cD','cN','cF'],st:'🦋'},{t:'B C R G',items:['cB','cC','cR','cG'],st:'🐳'},{t:'J V H K',items:['cJ','cV','cH','cK'],st:'🦉'},{t:'Ñ Q X',items:['cÑ','cQ','cX'],st:'🦖'},{t:'Y Z W',items:['cY','cZ','cW'],st:'🦄'},{t:'Repaso',items:[],st:'👑'}]
+ num:[{t:'1 2 3',items:['n1','n2','n3'],mon:'pipio'},{t:'4 5',items:['n4','n5'],mon:'tortu'},{t:'6 7',items:['n6','n7'],mon:'zorbi'},{t:'8 9 10',items:['n8','n9','n10'],mon:'pinchin'},{t:'0',items:['n0'],mon:'ulu'},{t:'Repaso',items:[],mon:'draki'}],
+ vow:[{t:'A E',items:['vA','vE'],mon:'zumbi'},{t:'I',items:['vI'],mon:'burbu'},{t:'O U',items:['vO','vU'],mon:'osote'},{t:'Todas',items:[],mon:'iris'}],
+ abc:[{t:'M P S L',items:['cM','cP','cS','cL'],mon:'pulpin'},{t:'T D N F',items:['cT','cD','cN','cF'],mon:'alita'},{t:'B C R G',items:['cB','cC','cR','cG'],mon:'pingui'},{t:'J V H K',items:['cJ','cV','cH','cK'],mon:'lagar'},{t:'Ñ Q X',items:['cÑ','cQ','cX'],mon:'brincos'},{t:'Y Z W',items:['cY','cZ','cW'],mon:'rexi'},{t:'Repaso',items:[],mon:'dracolor'}]
 };
+const MONS={
+ pipio:{n:'Pipío',e:'🐣',t:'Aire'},tortu:{n:'Tortulín',e:'🐢',t:'Agua'},zorbi:{n:'Zorbi',e:'🦊',t:'Fuego'},pinchin:{n:'Pinchín',e:'🦔',t:'Planta'},ulu:{n:'Ulú',e:'🦉',t:'Aire'},draki:{n:'Draki',e:'🐉',t:'Estrella'},
+ zumbi:{n:'Zumbi',e:'🐝',t:'Rayo'},burbu:{n:'Burbujín',e:'🐠',t:'Agua'},osote:{n:'Osote',e:'🐻',t:'Roca'},iris:{n:'Irisa',e:'🦄',t:'Estrella'},
+ pulpin:{n:'Pulpín',e:'🐙',t:'Agua'},alita:{n:'Alita',e:'🦋',t:'Aire'},pingui:{n:'Pingüi',e:'🐧',t:'Hielo'},lagar:{n:'Lagartín',e:'🦎',t:'Fuego'},brincos:{n:'Brincos',e:'🐸',t:'Planta'},rexi:{n:'Rexi',e:'🦖',t:'Roca'},dracolor:{n:'Dracolor',e:'🐲',t:'Estrella'}
+};
+const MEDALS=[
+ {id:'hoja',n:'Medalla Hoja',e:'🍃',c:'#5FBF6E',at:'num1'},{id:'gota',n:'Medalla Gota',e:'💧',c:'#4DA3E0',at:'num3'},{id:'llama',n:'Medalla Llama',e:'🔥',c:'#F07A45',at:'num5'},
+ {id:'rayo',n:'Medalla Rayo',e:'⚡',c:'#F5C842',at:'vow1'},{id:'roca',n:'Medalla Roca',e:'🪨',c:'#B08A64',at:'vow3'},
+ {id:'viento',n:'Medalla Viento',e:'🌪️',c:'#8FD3C7',at:'abc1'},{id:'hielo',n:'Medalla Hielo',e:'❄️',c:'#9CC9F0',at:'abc3'},{id:'estrella',n:'Medalla Estrella',e:'⭐',c:'#B88AE8',at:'abc6'}
+];
 const MSG={
- ok:['¡Muy bien, {n}!','¡Excelente, {n}!','¡Lo lograste, {n}!','¡Bravo, {n}!','¡Así se hace, {n}!','¡Eres una estrella, {n}!','¡Qué bien lo haces, {n}!','¡Lo sabías, {n}!'],
- okAfterTry:['¡Eso es, {n}! No te rendiste.','¡Lo lograste, {n}! Intentarlo otra vez funciona.','¡Muy bien, {n}! Practicando se aprende.','¡Ahí está, {n}! Sabía que podías.'],
- streak:['¡Tres seguidas, {n}! ¡Estás imparable!','¡Wow, {n}! ¡Vas volando!','¡Qué racha, {n}! ¡Sigue así!'],
- no:['Casi, {n}. ¡Tú puedes!','No pasa nada, {n}. Intenta otra vez.','Equivocarse es parte de aprender, {n}. ¡Otra vez!','Uy, casi. Vamos, {n}, tú puedes.','Con calma, {n}. Vamos de nuevo.'],
+ ok:['¡Muy bien, entrenador {n}!','¡Excelente, {n}!','¡Así entrena un campeón, {n}!','¡Bravo, {n}!','¡Tus criaturas están orgullosas, {n}!','¡Eres un gran entrenador, {n}!','¡Qué bien lo haces, {n}!','¡Lo sabías, {n}!'],
+ okAfterTry:['¡Eso es, {n}! Los grandes entrenadores nunca se rinden.','¡Lo lograste, {n}! Intentarlo otra vez funciona.','¡Muy bien, {n}! Entrenando se aprende.','¡Ahí está, {n}! Sabía que podías.'],
+ streak:['¡Tres seguidas, {n}! ¡Estás listo para la próxima medalla!','¡Wow, {n}! ¡Entrenas como un campeón!','¡Qué racha, {n}! ¡Las criaturas te admiran!'],
+ no:['Casi, {n}. ¡Tú puedes!','Hasta los mejores entrenadores fallan, {n}. ¡Otra vez!','Equivocarse es parte de entrenar, {n}. ¡Inténtalo!','Uy, casi. Vamos, {n}, tú puedes.','Con calma, {n}. Un buen entrenador lo intenta de nuevo.'],
  help:['Te ayudo, {n}.','Mira, {n}, te doy una pista.','Vamos juntos, {n}.'],
  heard0:['No te escuché, {n}. Habla un poquito más fuerte.','¿Me lo dices otra vez, {n}? Más fuerte.']
 };
+const monOf=(t,i)=>MONS[LEVELS[t][i].mon];
 const fmt=t=>S.name?t.replace(/\{n\}/g,S.name):t.replace(/,? ?\{n\}/g,'');
 const msg=k=>fmt(rand(MSG[k]));
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -184,7 +229,7 @@ const OBJS=['🍎','🐟','⭐','🎈','🐞','🍓','🚗'];
 /* ---------- estado ---------- */
 const KEY='pasitos-v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
-let S=Object.assign({stars:{},box:{},stickers:[],mic:true,unlockAll:false},load());
+let S=Object.assign({stars:{},box:{},caught:[],medals:[],mic:true,unlockAll:false},load());S.caught=S.caught||[];S.medals=S.medals||[];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const starsOf=(t,i)=>S.stars[t+i]||0;
 function levelOpen(t,i){if(S.unlockAll)return true;if(t==='abc'&&!trackOpen('abc'))return false;return i===0||starsOf(t,i-1)>=2}
@@ -251,37 +296,40 @@ function toast(msg){document.querySelector('.toast')?.remove();const d=document.
 /* ---------- pantallas ---------- */
 let view='home',curTrack='num';
 function go(v,t){view=v;if(t)curTrack=t;hush();stepToken++;render()}
-function render(){if(!S.name&&view!=='name')view='name';({name:renderName,home:renderHome,map:renderMap,lesson:()=>renderLesson(),result:renderResult})[view]()}
+function render(){if(!S.name&&view!=='name')view='name';({name:renderName,home:renderHome,map:renderMap,lesson:()=>renderLesson(),result:renderResult,capture:renderCapture})[view]()}
 
 function renderName(){
  const mic=micOn();
- app.innerHTML=`<section class="screen result"><div class="wave" aria-hidden="true">👋</div>
- <h2>¡Hola! ¿Cómo te llamas?</h2>
+ app.innerHTML=`<section class="screen result"><div class="wave" aria-hidden="true">🧢</div>
+ <h2>¡Hola, futuro entrenador! ¿Cómo te llamas?</h2>
  <div class="name-card"><label class="eyebrow" for="kidName">Nombre del niño o la niña</label>
  <input id="kidName" class="name-in" maxlength="20" autocomplete="off" placeholder="Escribe aquí" value="${esc(S.name||'')}">
  ${mic?'<button class="pbtn" data-act="namemic">🎤 Decirlo con el micrófono</button><div class="heard" id="heard"></div>':''}
  <button class="pbtn" data-act="namehear">🔊 Escuchar cómo suena</button>
  <button class="cta" data-act="namesave">¡Empezar!</button></div>
- <p style="margin:0;max-width:34ch;font-weight:700;color:var(--ink-soft)">La app usará su nombre para animarlo cuando acierte y cuando se equivoque.</p></section>`;
+ <p style="margin:0;max-width:34ch;font-weight:700;color:var(--ink-soft)">Para ser un gran entrenador de criaturas, primero hay que aprender los números y las letras. Usaremos su nombre para animarlo en la aventura.</p></section>`;
  const inp=document.getElementById('kidName');inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveName()});
 }
 const cleanName=t=>t.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]/g,'').trim().split(/\s+/).slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ').slice(0,20);
 function saveName(){const v=cleanName(document.getElementById('kidName').value);if(!v){toast('Escribe el nombre para empezar.');say('Primero escribe tu nombre.');return}
- S.name=v;save();sfx.win();go('home');say(`¡Hola, ${v}! Qué alegría conocerte. Vamos a aprender los números y las letras jugando. ¡Toca un camino para empezar!`)}
+ S.name=v;save();sfx.win();go('home');say(`¡Bienvenido, entrenador ${v}! Para ser un gran entrenador de criaturas, primero debes aprender los números y las letras. Cada nivel que superes te deja capturar una criatura nueva, y vas a ganar medallas. ¡Comienza tu aventura con los números!`)}
 async function nameMic(){if(busy)return;busy=true;const h=document.getElementById('heard');if(h)h.textContent='Te escucho…';await say('Di tu nombre.');const alts=await listen();busy=false;
  if(!alts||!alts.length){if(h)h.textContent='No escuché. Intenta otra vez o escríbelo.';return}
  const v=cleanName(alts[0]);document.getElementById('kidName').value=v;if(h)h.textContent='';say(`¿Te llamas ${v}? Si está bien, toca Empezar.`)}
 
+function trainerGoal(){const n=MEDALS.find(m=>!S.medals.includes(m.id));if(!n)return '¡Eres un Gran Entrenador! 🏆';const [t,i]=[n.at.slice(0,3),+n.at.slice(3)];return `Próxima: ${n.n} en ${TRACKS[t].t}, nivel ${i+1}`}
 function renderHome(){
  const seen=Object.keys(S.box).length;
- app.innerHTML=`<section class="screen"><div class="topbar"><div><div class="eyebrow">${S.name?"Hola, "+esc(S.name):"Aprender jugando"}</div><h1>Pasitos</h1></div>
+ app.innerHTML=`<section class="screen"><div class="topbar"><div><div class="eyebrow">Aventura de entrenadores</div><h1>Pasitos</h1></div>
  <button class="hold" id="parents" aria-label="Mantén presionado para abrir el panel de padres"><i></i><span>Padres · mantén</span></button></div>
  <div class="scroll">
+ <div class="trainer"><span class="cap" aria-hidden="true">🧢</span><span><b>Entrenador ${esc(S.name||'')}</b><small>${S.caught.length} de ${Object.keys(MONS).length} criaturas · ${S.medals.length} de ${MEDALS.length} medallas</small><br><small>${trainerGoal()}</small></span></div>
  ${Object.entries(TRACKS).map(([k,t])=>{const lv=LEVELS[k],done=lv.filter((_,i)=>starsOf(k,i)>=2).length,open=trackOpen(k);
   return `<button class="track ${open?'':'locked'}" data-act="track" data-t="${k}"><span class="badge" style="background:${t.c};box-shadow:inset 0 -6px 0 ${t.d}">${open?t.badge:ICON.lock}</span>
   <span><b>${t.t}</b><small>${k==='abc'&&open?'Las consonantes, en grupos':t.sub}</small><div class="bar"><i style="width:${done/lv.length*100}%;background:${t.c}"></i></div><small>${done} de ${lv.length} niveles</small></span></button>`}).join('')}
  ${seen>=3?`<button class="review" data-act="mix"><span style="font-size:36px">🔁</span><span><b>Repaso de hoy</b><small>2 minutos con lo que ya sabe. Ayuda a no olvidar.</small></span></button>`:''}
- <div><div class="eyebrow" style="margin-bottom:8px">Álbum de premios</div><div class="album">${Object.values(LEVELS).flat().map(l=>S.stickers.includes(l.st)?`<span>${l.st}</span>`:'<span class="empty"></span>').join('')}</div></div>
+ <div><div class="eyebrow" style="margin-bottom:10px">Medallas</div><div class="medals">${MEDALS.map(m=>S.medals.includes(m.id)?`<span class="medal" style="--mc:${m.c}" title="${m.n}">${m.e}</span>`:'<span class="medal off" aria-label="Medalla por ganar"></span>').join('')}</div></div>
+ <div><div class="eyebrow" style="margin-bottom:8px">Mis criaturas</div><div class="team">${Object.entries(MONS).map(([k,m])=>S.caught.includes(k)?`<span class="mon"><span>${m.e}</span><small>${m.n}</small></span>`:`<span class="mon unk"><span>${m.e}</span><small>???</small></span>`).join('')}</div></div>
  </div></section>`;
  const h=document.getElementById('parents');let tm;
  const start=e=>{e.preventDefault();h.classList.add('on');tm=setTimeout(()=>{h.classList.remove('on');openParents()},1400)};
@@ -294,7 +342,7 @@ function renderMap(){
  const t=TRACKS[curTrack],xs=[0,30,52,30,0,22,46];
  app.innerHTML=`<section class="screen"><div class="topbar"><button class="icon-btn" data-act="home" aria-label="Volver">${ICON.back}</button><h2>${t.t}</h2><span style="width:48px"></span></div>
  <div class="scroll"><div class="path">${LEVELS[curTrack].map((l,i)=>{const open=levelOpen(curTrack,i),s=starsOf(curTrack,i);
-  return `<button class="node ${open?'':'locked'}" style="--x:${xs[i%xs.length]};--c:${t.c};--d:${t.d}" data-act="level" data-i="${i}"><span class="disc">${open?l.t:ICON.lock}</span><span class="meta"><b>Nivel ${i+1}</b>${open?starsHTML(s):'<small>Gana 2 estrellas antes</small>'}</span></button>`}).join('')}</div></div></section>`;
+  return `<button class="node ${open?'':'locked'}" style="--x:${xs[i%xs.length]};--c:${t.c};--d:${t.d}" data-act="level" data-i="${i}"><span class="disc">${open?l.t:ICON.lock}</span><span class="meta"><b>Nivel ${i+1}</b>${open?starsHTML(s):'<small>Gana 2 estrellas antes</small>'}${(()=>{const m=MONS[l.mon],c=S.caught.includes(l.mon);return `<span class="reward"><span class="${c?'':'shadow'}">${m.e}</span>${c?m.n+' capturado':'Criatura por capturar'}</span>`})()}${MEDALS.filter(md=>md.at===curTrack+i).map(md=>`<span class="reward"><span>${S.medals.includes(md.id)?md.e:'🏅'}</span>${md.n}</span>`).join('')}</span></button>`}).join('')}</div></div></section>`;
 }
 
 /* ---------- motor de lección ---------- */
@@ -356,12 +404,13 @@ const EXPLAIN={
  say:'Ahora te toca hablar. Toca el botón rojo y dilo en voz alta.'
 };
 function lessonGreeting(){
- if(L.track==='mix')return fmt('¡Hola, {n}! Vamos a repasar lo que ya sabes. Así no se te olvida.');
+ if(L.track==='mix')return fmt('¡Hola, entrenador {n}! Vamos a entrenar con todo lo que ya sabes. Así no se te olvida.');
  const fresh=LEVELS[L.track][L.li].items.map(id=>ITEM[id]);
- if(!fresh.length)return fmt('¡Vamos, {n}! Este es un nivel de repaso. Muéstrame todo lo que aprendiste.');
+ const mon=monOf(L.track,L.li),got=S.caught.includes(LEVELS[L.track][L.li].mon);const tail=got?'':` Si lo superas, podrás capturar a ${mon.n}.`;
+ if(!fresh.length)return fmt('¡Vamos, entrenador {n}! Este es un nivel de repaso. Muéstrame todo lo que aprendiste.')+tail;
  const names=fresh.map(i=>i.name);const list=names.length>1?names.slice(0,-1).join(', ')+' y '+names[names.length-1]:names[0];
  const what=L.track==='num'?(names.length>1?'los números':'el número'):(names.length>1?'las letras':'la letra');
- return fmt(`¡Hola, {n}! Hoy vas a aprender ${what} ${list}. Primero escucha y mira, después lo dices tú. ¡Vamos!`)}
+ return fmt(`¡Hola, entrenador {n}! Hoy vas a aprender ${what} ${list}.${tail} Primero escucha y mira, después lo dices tú. ¡Vamos!`)}
 async function speakPrompt(st){const tok=stepToken;
  if(!L.greeted){L.greeted=true;await say(lessonGreeting());if(tok!==stepToken)return}
  if(st.kind!=='intro'&&!L.explained.has(st.kind)){L.explained.add(st.kind);await say(EXPLAIN[st.kind]);if(tok!==stepToken)return}
@@ -409,19 +458,48 @@ async function onOpt(btn){const st=cur();if(busy)return;const id=btn.dataset.id,
 function onObj(btn){const st=cur();if(btn.classList.contains('counted'))return;st.counted++;btn.classList.add('counted');btn.insertAdjacentHTML('beforeend',`<em>${st.counted}</em>`);sfx.pop();say(NUMW[st.counted])}
 
 function finish(){
- const ratio=L.total?L.first/L.total:1;const stars=ratio>=.9?3:ratio>=.7?2:1;let sticker=null,key=L.track+L.li;
- if(L.track!=='mix'){S.stars[key]=Math.max(S.stars[key]||0,stars);const st=LEVELS[L.track][L.li].st;if(stars>=2&&!S.stickers.includes(st)){S.stickers.push(st);sticker=st}}
- save();L.result={stars,sticker};view='result';render();sfx.win();
- say(stars>=2?fmt(`¡Felicitaciones, {n}! Ganaste ${stars} estrellas${sticker?' y un premio nuevo para tu álbum':''}. ¡Estoy muy orgulloso de ti!`):fmt('¡Buen trabajo, {n}! Cada vez lo haces mejor. Si jugamos otra vez, ganas más estrellas.'))}
-function renderResult(){const {stars,sticker}=L.result,mix=L.track==='mix';
+ const ratio=L.total?L.first/L.total:1;const stars=ratio>=.9?3:ratio>=.7?2:1;let capture=null,medal=null,escaped=null,key=L.track+L.li;
+ if(L.track!=='mix'){S.stars[key]=Math.max(S.stars[key]||0,stars);const mk=LEVELS[L.track][L.li].mon;
+  if(stars>=2){if(!S.caught.includes(mk)){S.caught.push(mk);capture=mk}const md=MEDALS.find(m=>m.at===key);if(md&&!S.medals.includes(md.id)){S.medals.push(md.id);medal=md.id}}
+  else if(!S.caught.includes(mk))escaped=mk}
+ save();L.result={stars,capture,medal,escaped,caughtNow:false};
+ if(capture){view='capture';render();sfx.win();say(fmt(`¡Superaste el nivel, {n}! ¡Mira, apareció ${MONS[capture].n}, una criatura de tipo ${MONS[capture].t}! Toca la esfera para lanzarla.`))}
+ else showResult()}
+function showResult(){const r=L.result;view='result';render();if(!r.capture)sfx.win();
+ const md=r.medal&&MEDALS.find(m=>m.id===r.medal);const last=md&&S.medals.length===MEDALS.length;
+ let t;if(r.stars>=2){t=fmt(`¡Felicitaciones, entrenador {n}! Ganaste ${r.stars} estrellas.`);if(md){t+=` ¡Y ganaste la ${md.n}!`;setTimeout(()=>claps(30,1.6),400)}if(last)t+=fmt(' ¡Ya tienes todas las medallas! ¡Eres un Gran Entrenador, {n}!')}
+ else if(r.escaped)t=fmt(`¡Buen intento, {n}! ${MONS[r.escaped].n} se escapó, pero te está esperando. Entrena otra vez y gana 2 estrellas para capturarlo.`);
+ else t=fmt('¡Buen trabajo, {n}! Cada vez lo haces mejor. Si entrenas otra vez, ganas más estrellas.');
+ say(t)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const STAR_SVG='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.5l1.3-6.6L2.5 9.3l6.6-.8z" fill="#fff"/></svg>';
+function renderCapture(){const m=MONS[L.result.capture];
+ app.innerHTML=`<section class="screen result"><div class="eyebrow">Nivel superado · Tipo ${m.t}</div>
+ <p class="cap-msg" id="capMsg">¡Apareció ${m.n}!</p>
+ <div class="cap-stage"><div class="cap-grass"></div><div class="cap-mon" id="capMon">${m.e}</div><button class="ball" id="ball" data-act="throw" aria-label="Lanzar la esfera">${STAR_SVG}</button></div>
+ <div id="capAfter" style="min-height:64px;display:flex;align-items:center;justify-content:center"><div class="mic-label">Toca la esfera para lanzarla</div></div></section>`}
+let throwing=false;
+async function throwBall(){if(throwing||L.result.caughtNow)return;throwing=true;const tok=stepToken,m=MONS[L.result.capture];hush();
+ const b=document.getElementById('ball'),mon=document.getElementById('capMon'),msgEl=document.getElementById('capMsg');
+ document.getElementById('capAfter').innerHTML='';glide(220,900,.6,'triangle',.15);b.classList.add('throw');await sleep(700);if(tok!==stepToken)return;
+ mon.classList.add('gone');glide(1200,300,.4,'sine',.18);b.classList.remove('throw');b.classList.add('land');await sleep(500);if(tok!==stepToken)return;
+ b.classList.remove('land');
+ for(let k=0;k<3;k++){b.classList.remove('wob');void b.offsetWidth;b.classList.add('wob');msgEl.textContent='.'.repeat(k+1);tone([330+k*80],.08,'square');await sleep(650);if(tok!==stepToken)return}
+ b.classList.remove('wob');b.classList.add('done');tone([784,988,1175,1568],.1);setTimeout(()=>claps(),300);
+ msgEl.textContent=`¡Capturaste a ${m.n}!`;L.result.caughtNow=true;throwing=false;
+ document.getElementById('capAfter').innerHTML='<button class="cta" data-act="aftercap">¡Genial! Continuar</button>';
+ say(fmt(`¡Lo lograste, {n}! ¡Capturaste a ${m.n}! Ya es parte de tu equipo.`))}
+function renderResult(){const {stars,capture,medal,escaped}=L.result,mix=L.track==='mix';const md=medal&&MEDALS.find(m=>m.id===medal);
  const hasNext=!mix&&L.li+1<LEVELS[L.track].length&&levelOpen(L.track,L.li+1);
  app.innerHTML=`<section class="screen result"><div class="eyebrow">${mix?'Repaso terminado':'Nivel '+(L.li+1)+' terminado'}</div>
  <h2>${stars>=2?'¡Felicitaciones'+(S.name?', '+esc(S.name):'')+'!':'¡Buen trabajo'+(S.name?', '+esc(S.name):'')+'!'}</h2><div class="big-stars">${[1,2,3].map(k=>ICON.star(k<=stars)).join('')}</div>
- ${sticker?`<div class="sticker">${sticker}</div><div style="font-weight:800">Premio nuevo en tu álbum</div>`:''}
- ${!mix&&stars<2?'<p style="max-width:30ch;margin:0;font-weight:700;color:var(--ink-soft)">Con 2 estrellas se abre el siguiente nivel.</p>':''}
+ ${capture?`<div class="reward" style="font-size:16px"><span style="font-size:40px">${MONS[capture].e}</span>${MONS[capture].n} se unió a tu equipo</div>`:''}
+ ${md?`<div class="medal-row"><span class="medal big" style="--mc:${md.c}">${md.e}</span><span><div class="eyebrow">¡Medalla nueva!</div><b style="font-family:var(--display);font-size:24px">${md.n}</b>${S.medals.length===MEDALS.length?'<br><b>¡Gran Entrenador!</b>':''}</span></div>`:''}
+ ${escaped?`<div class="reward" style="font-size:15px"><span class="shadow" style="font-size:40px">${MONS[escaped].e}</span>Se escapó. ¡Entrena otra vez para capturarlo!</div>`:''}
+ ${!mix&&stars<2?'<p style="max-width:30ch;margin:0;font-weight:700;color:var(--ink-soft)">Con 2 estrellas se abre el siguiente nivel y capturas la criatura.</p>':''}
  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px">
  ${hasNext?'<button class="cta" data-act="nextlevel">Siguiente nivel</button>':''}
- ${mix?'':`<button class="cta ${hasNext?'alt':''}" data-act="retry">Jugar otra vez</button>`}
+ ${mix?'':`<button class="cta ${hasNext?'alt':''}" data-act="retry">Entrenar otra vez</button>`}
  <button class="cta alt" data-act="${mix?'home':'backmap'}">${mix?'Inicio':'Ver niveles'}</button></div></section>`}
 
 /* ---------- panel de padres ---------- */
@@ -429,13 +507,13 @@ function openParents(){
  const seen=Object.keys(S.box).filter(id=>ITEM[id]);const strong=seen.filter(id=>S.box[id]>=3).length;
  const d=document.createElement('div');d.className='sheet';
  d.innerHTML=`<div class="sheet-in" role="dialog" aria-label="Panel de padres"><div class="topbar"><h2>Panel de padres</h2><button class="icon-btn" data-x aria-label="Cerrar">${ICON.close}</button></div>
- <p>Cada nivel sigue el mismo orden, basado en prácticas usadas en educación inicial:</p>
+ <p>La aventura motiva con criaturas para capturar y medallas, pero solo se ganan aprendiendo: con 2 estrellas en un nivel se captura su criatura. Cada nivel sigue el mismo orden, basado en prácticas usadas en educación inicial:</p>
  <ol><li><b>Modelar sin error.</b> Primero ve y escucha el símbolo nuevo con su cantidad o su dibujo, y lo repite. No se puede fallar en esta parte.</li>
  <li><b>Reconocer, luego recordar.</b> Primero elige entre opciones (más fácil), después lo dice solo con el micrófono (más difícil).</li>
  <li><b>Pistas que se retiran.</b> Al segundo error se ilumina la respuesta correcta, así nunca se queda atascado.</li>
  <li><b>Repaso espaciado.</b> Lo que falla vuelve a salir más seguido; lo que domina, menos. Usa el Repaso de hoy a diario.</li>
  <li><b>Pocos a la vez.</b> 1 a 4 símbolos nuevos por nivel, mezclados con los anteriores. Sesiones de 3 a 5 minutos rinden más que una larga.</li></ol>
- <div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Premios</span><span>${S.stickers.length}</span>
+ <div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Criaturas capturadas</span><span>${S.caught.length} de ${Object.keys(MONS).length}</span><span>Medallas</span><span>${S.medals.length} de ${MEDALS.length}</span>
  ${seen.length?`<span>Por reforzar</span><span>${seen.filter(id=>S.box[id]<2).map(id=>ITEM[id].show).join(' ')||'—'}</span>`:''}</div>
  <div class="toggle"><span>Usar micrófono<br><small style="color:var(--ink-soft)">${(NB||SRC)?(micBroken?'Bloqueado en esta vista: usa la app instalada':'Disponible'):'Este navegador no reconoce voz'}</small></span><button class="switch" role="switch" aria-checked="${S.mic}" data-k="mic" aria-label="Usar micrófono"></button></div>
  <div class="toggle"><span>Abrir todos los niveles</span><button class="switch" role="switch" aria-checked="${S.unlockAll}" data-k="unlockAll" aria-label="Abrir todos los niveles"></button></div>
@@ -445,13 +523,15 @@ function openParents(){
   if(e.target===d||e.target.closest('[data-x]')){d.remove();render();return}
   const sw=e.target.closest('.switch');if(sw){const k=sw.dataset.k;S[k]=!S[k];if(k==='mic'&&S.mic)micBroken=false;sw.setAttribute('aria-checked',S[k]);save();return}
   if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
-  const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},stickers:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
+  const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
  })}
 
 /* ---------- eventos ---------- */
 app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
- if(a==='track'){const t=b.dataset.t;if(!trackOpen(t)){toast('Primero gana 2 estrellas en el nivel O U de las vocales.');say('Primero terminemos las vocales.');return}sfx.tap();go('map',t);say(fmt(`¡Vamos con ${t==='num'?'los números':t==='vow'?'las vocales':'el abecedario'}, {n}! Elige un nivel.`))}
+ if(a==='track'){const t=b.dataset.t;if(!trackOpen(t)){toast('Primero gana 2 estrellas en el nivel O U de las vocales.');say(fmt('Primero terminemos las vocales, entrenador {n}.'));return}sfx.tap();go('map',t);say(fmt(`¡Vamos con ${t==='num'?'los números':t==='vow'?'las vocales':'el abecedario'}, entrenador {n}! Cada nivel tiene una criatura esperándote. Elige un nivel.`))}
  else if(a==='home')go('home');
+ else if(a==='throw')throwBall();
+ else if(a==='aftercap'){stepToken++;showResult()}
  else if(a==='namesave')saveName();
  else if(a==='namehear'){const v=cleanName(document.getElementById('kidName').value);say(v?`¡Hola, ${v}!`:'Escribe tu nombre.')}
  else if(a==='namemic')nameMic();
