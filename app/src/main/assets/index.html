@@ -263,7 +263,7 @@ function say(text){return new Promise(res=>{let done=false;const fin=()=>{if(!do
 const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micBroken=false;
 const micOn=()=>S.mic&&(!!NB||!!SRC)&&!micBroken;
-function listen(onReady){if(NB)return new Promise(res=>{window.__srReady=()=>{onReady&&onReady()};const tm=setTimeout(()=>{window.__sr=null;res([])},10000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
+function listen(onReady){if(NB)return new Promise(res=>{window.__srReady=()=>{onReady&&onReady()};const tm=setTimeout(()=>{window.__sr=null;res([])},10000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;window.__lastSrErr=j.err||'';if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
  return new Promise(res=>{let r;try{r=new SRC()}catch(e){micBroken=true;return res(null)}
  r.lang='es-CO';r.interimResults=false;r.maxAlternatives=5;r.continuous=false;
  const out=[];let settled=false;const fin=v=>{if(!settled){settled=true;clearTimeout(tm);res(v)}};
@@ -274,6 +274,20 @@ function listen(onReady){if(NB)return new Promise(res=>{window.__srReady=()=>{on
  try{r.start()}catch(e){micBroken=true;fin(null)}})}
 const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>2)return 9;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function ph(w){w=norm(w).replace(/\s+/g,'');if(!w)return '';
+ w=w.replace(/ch/g,'x').replace(/qu/g,'k').replace(/c([ei])/g,'s$1').replace(/c/g,'k').replace(/z/g,'s').replace(/v/g,'b').replace(/w/g,'u').replace(/ll/g,'y').replace(/h/g,'').replace(/g([ei])/g,'j$1').replace(/x(?=[aeiou])/g,'x').replace(/d/g,'t').replace(/rr/g,'r');
+ w=w.replace(/([bptkgf])[rl]/g,'$1');if(w.length>2)w=w.replace(/s$/,'');w=w.replace(/(.)\1+/g,'$1');return w}
+function simP(a,b){if(!a||!b)return 0;const m=a.length,n=b.length;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return 1-p[n]/Math.max(m,n)}
+function keysOf(it){const k=new Set([ph(it.name)]);it.accept.forEach(a=>{if(!/^\d+$/.test(a))k.add(ph(a))});if(it.word)k.add(ph(it.word));k.delete('');return [...k]}
+function heardTokens(alts){const out=new Set();alts.forEach(a=>{const n=norm(a);if(!n)return;n.split(' ').forEach(t=>{if(/^\d+$/.test(t)){if(+t<=10)out.add(ph(NUMW[+t]))}else out.add(ph(t))});out.add(ph(n))});out.delete('');return [...out]}
+function classify(it,alts){if(!alts||!alts.length)return{ok:false};
+ if(matches(it,alts))return{ok:true};
+ const toks=heardTokens(alts),cands=TRACKS[it.track].items;
+ const sc=c=>{let best=0;const ks=keysOf(c);toks.forEach(t=>ks.forEach(k=>{best=Math.max(best,simP(t,k))}));return best};
+ const mine=sc(it);let other=null,os=0;cands.forEach(c=>{if(c.id===it.id)return;const v=sc(c);if(v>os){os=v;other=c}});
+ if(mine>=0.6||(mine>=0.34&&mine>=os))return{ok:true,score:mine};
+ if(other&&os>=0.67&&os-mine>=0.15)return{ok:false,other};
+ return{ok:false}}
 function matches(it,alts){const acc=it.accept.map(norm).filter(Boolean);
  return alts.some(a=>{const n=norm(a),tk=n.split(' ');
   if(acc.some(w=>n===w||tk.includes(w)||(w.length>=3&&n.includes(w))))return true;
@@ -370,7 +384,8 @@ function buildMix(){
   steps.push({kind:typeFor(t,k,id),id,pool:seen.filter(x=>ITEM[x].track===t)})}
  return steps}
 function startLesson(t,li){L={track:t,li,steps:t==='mix'?buildMix():buildSteps(t,li),i:0,first:0,total:0,again:new Set(),explained:new Set(),streak:0,greeted:false};view='lesson';runStep()}
-function runStep(){const tok=++stepToken;const st=L.steps[L.i];st.fails=0;st.counted=0;busy=false;renderLesson();setTimeout(()=>{if(tok===stepToken)speakPrompt(st)},300)}
+function runStep(){const tok=++stepToken;const st=L.steps[L.i];st.fails=0;st.counted=0;st.auto=0;st.silent=0;busy=false;renderLesson();setTimeout(async()=>{if(tok!==stepToken)return;await speakPrompt(st);autoListen(st,tok)},300)}
+function autoListen(st,tok){if(tok!==stepToken||!micOn()||cur()!==st||!['intro','say'].includes(st.kind))return;st.auto=(st.auto||0)+1;if(st.auto>6)return;setTimeout(()=>{if(tok===stepToken&&!busy&&cur()===st)onMic()},200)}
 const cur=()=>L.steps[L.i];
 
 function optCount(){if(L.track==='mix')return 3;return Math.min(4,2+Math.floor(L.li/2)+(L.track==='abc'?1:0))}
@@ -432,9 +447,10 @@ function burst(){const d=document.createElement('div');d.className='burst';d.inn
 async function success(st){const tok=stepToken;busy=true;const it=ITEM[st.id];burst();
  let text;if(st.kind==='intro')text=fmt(rand(['¡Muy bien, {n}! ','¡Perfecto, {n}! ','¡Así se dice, {n}! ']))+cap(it.name)+'.';
  else if(st.fails===0){L.streak++;if(L.streak%3===0){sfx.streak();text=msg('streak')}else{sfx.ok();text=msg('ok')+' '+cap(it.name)+'.'}}
+ else if(st.lenient){sfx.ok();text=msg('ok')+' '+cap(it.name)+'.'}
  else{L.streak=0;sfx.ok();text=msg('okAfterTry')}
  if(st.kind==='intro')sfx.ok();cheer(text.split(/[.!] /)[0].replace(/[¡!]/g,'')+(text.includes('!')?' ⭐':''));
- await say(text);if(tok!==stepToken)return;next(st.fails===0)}
+ await say(text);if(tok!==stepToken)return;next(st.fails===0||!!st.lenient)}
 function next(firstTry){const st=cur();
  if(st.kind!=='intro'){if(!st.extra){L.total++;if(firstTry)L.first++}
   const b=S.box[st.id]||0;S.box[st.id]=firstTry?Math.min(5,b+1):Math.max(0,b-1);
@@ -446,14 +462,25 @@ async function onMic(){const st=cur();if(busy||!micOn())return;const tok=stepTok
  const btn=app.querySelector('.mic'),lab=document.getElementById('micLabel');btn?.classList.add('listening');if(lab)lab.textContent='Te escucho…';
  hush();if(lab)lab.textContent=NB?'Preparando…':'¡Habla ahora!';const alts=await listen(()=>{if(lab&&tok===stepToken)lab.textContent='¡Habla ahora!'});if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
  if(alts===null){toast('El micrófono no está disponible aquí. Un adulto puede confirmar con los botones.');renderLesson();return}
- const h=document.getElementById('heard');if(h)h.textContent=alts.length?`Escuché: “${alts[0]}”`:'No escuché nada';
- if(lab)lab.textContent='Toca y dilo';
- if(alts.length&&matches(ITEM[st.id],alts))success(st);else failSay(st,!alts.length)}
-async function failSay(st,silent){const it=ITEM[st.id],tok=stepToken;st.fails++;L.streak=0;sfx.no();
- const pre=silent?msg('heard0'):msg('no');cheer(fmt('¡Tú puedes, {n}!'),true);
- if(st.kind==='intro'){if(st.fails>=2)renderLesson();await say(`${pre} Escucha: ${it.name}. ¡${it.name}!`);return}
- if(st.fails===1)return say(pre);
- if(st.fails===2)return say(`${msg('help')} Es ${art(it)} ${it.name}. Dilo conmigo: ${it.name}.`);
+ const h=document.getElementById('heard');if(h)h.textContent=alts.length?`Escuché: “${alts[0]}”`:'';
+ if(lab)lab.textContent='Toca el micrófono para hablar';
+ const r=classify(ITEM[st.id],alts);
+ if(r.ok)success(st);
+ else if(!alts.length)failSay(st,true);
+ else if(r.other)wrongSay(st,r.other);
+ else if(st.fails>=1){st.lenient=true;success(st)}
+ else failSay(st,false)}
+async function wrongSay(st,other){const it=ITEM[st.id],tok=stepToken;st.fails++;L.streak=0;sfx.no();cheer(fmt('¡Tú puedes, {n}!'),true);
+ if(st.fails>=3){busy=true;await say(fmt(`Ese es ${art(other)} ${other.name}. Este es ${art(it)} ${it.name}. ¡Seguimos, {n}!`));if(tok===stepToken)next(false);return}
+ await say(`Mmm, ese es ${art(other)} ${other.name}. Este es ${art(it)} ${it.name}. Dilo conmigo: ${it.name}.`);autoListen(st,tok)}
+async function failSay(st,silent){const it=ITEM[st.id],tok=stepToken;
+ if(silent){st.silent=(st.silent||0)+1;if(st.silent>2){if(st.kind==='intro'){st.fails=2;renderLesson()}await say(fmt('Cuando quieras hablar, toca el botón rojo, {n}.'));return}
+  await say(st.silent===1?fmt(`No te escuché, {n}. Dilo fuerte: ${it.name}.`):fmt(`¿Me lo dices otra vez, {n}? ${cap(it.name)}.`));autoListen(st,tok);return}
+ st.fails++;L.streak=0;sfx.no();
+ const pre=msg('no');cheer(fmt('¡Tú puedes, {n}!'),true);
+ if(st.kind==='intro'){if(st.fails>=2)renderLesson();await say(`${pre} Escucha: ${it.name}. ¡${it.name}!`);autoListen(st,tok);return}
+ if(st.fails===1){await say(pre);autoListen(st,tok);return}
+ if(st.fails===2){await say(`${msg('help')} Es ${art(it)} ${it.name}. Dilo conmigo: ${it.name}.`);autoListen(st,tok);return}
  busy=true;await say(fmt(`Es ${art(it)} ${it.name}. La próxima vez lo vas a lograr, {n}. ¡Seguimos!`));if(tok===stepToken)next(false)}
 async function onOpt(btn){const st=cur();if(busy)return;const id=btn.dataset.id,it=ITEM[st.id];
  if(id===st.id){btn.classList.add('right');return success(st)}
@@ -531,11 +558,14 @@ function openParents(){
  ${NB&&NB.voices?voiceRow():''}
  <div class="toggle"><span>Usar micrófono<br><small style="color:var(--ink-soft)">${(NB||SRC)?(micBroken?'Bloqueado en esta vista: usa la app instalada':'Disponible'):'Este navegador no reconoce voz'}</small></span><button class="switch" role="switch" aria-checked="${S.mic}" data-k="mic" aria-label="Usar micrófono"></button></div>
  <div class="toggle"><span>Abrir todos los niveles</span><button class="switch" role="switch" aria-checked="${S.unlockAll}" data-k="unlockAll" aria-label="Abrir todos los niveles"></button></div>
- <div class="toggle"><span>Nombre: <b>${esc(S.name||"—")}</b></span><button class="pbtn" data-rename>Cambiar</button></div><button class="danger" data-reset>Borrar el progreso</button></div>`;
+ <div class="toggle"><span>Nombre: <b>${esc(S.name||"—")}</b></span><button class="pbtn" data-rename>Cambiar</button></div><div class="toggle" style="flex-wrap:wrap"><span>Probar micrófono<br><small style="color:var(--ink-soft)">Muestra lo que entiende el celular</small></span><button class="pbtn" data-testmic>Probar</button><div id="micTest" style="width:100%;font-size:14px;font-weight:700"></div></div><button class="danger" data-reset>Borrar el progreso</button></div>`;
  document.body.appendChild(d);
  d.addEventListener('click',e=>{
   if(e.target===d||e.target.closest('[data-x]')){d.remove();render();return}
   const sw=e.target.closest('.switch');if(sw){const k=sw.dataset.k;S[k]=!S[k];if(k==='mic'&&S.mic)micBroken=false;sw.setAttribute('aria-checked',S[k]);save();return}
+  if(e.target.closest('[data-testmic]')){const out=d.querySelector('#micTest');if(!micOn()){out.textContent='El micrófono no está disponible o está apagado.';return}out.textContent='Preparando…';
+   listen(()=>{out.textContent='¡Habla ahora! Di un número.'}).then(alts=>{if(alts===null){out.textContent='Sin permiso de micrófono. Revísalo en Ajustes del celular → Apps → Pasitos → Permisos.';return}
+    out.textContent=alts.length?'Entendí: '+alts.slice(0,5).join(' | '):'No entendí nada'+(window.__lastSrErr?' (código '+window.__lastSrErr+')':'')+'. Prueba más cerca o revisa que la app Google esté actualizada.'});return}
   if(e.target.closest('[data-testvoice]')){const sel=d.querySelector('#voiceSel');if(sel){NB.setVoice(sel.value);S.voice=sel.value;save();say(fmt('¡Hola, entrenador {n}! Así suena mi voz. Vamos a aprender los números: uno, dos, tres.'))}return}
   if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
   const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
@@ -553,7 +583,7 @@ app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)re
  else if(a==='level'){const i=+b.dataset.i;if(!levelOpen(curTrack,i)){toast('Gana 2 estrellas en el nivel anterior para abrir este.');return}sfx.tap();startLesson(curTrack,i)}
  else if(a==='mix'){sfx.tap();startLesson('mix',0)}
  else if(a==='quit'){L.track==='mix'?go('home'):go('map')}
- else if(a==='replay')promptOnly(cur());
+ else if(a==='replay'){const st=cur(),tok=stepToken;if(busy)return;hush();Promise.resolve(promptOnly(st)).then(()=>{st.auto=0;autoListen(st,tok)})}
  else if(a==='mic')onMic();
  else if(a==='ok'){if(!busy)success(cur())}
  else if(a==='again'){const st=cur(),it=ITEM[st.id];st.fails++;say(`Escucha: ${it.name}. Ahora tú.`)}

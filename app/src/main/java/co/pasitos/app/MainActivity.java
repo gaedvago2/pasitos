@@ -38,11 +38,15 @@ public class MainActivity extends Activity {
     private boolean delivered = false;
     private int busyRetries = 0;
     private SharedPreferences prefs;
+    private static final String[] LANGS = {"es-CO", "es-US", "es-MX", "es-ES", ""};
+    private int langIdx = 0;
+    private int langTries = 0;
 
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("pasitos", MODE_PRIVATE);
+        langIdx = prefs.getInt("langIdx", 0);
         web = new WebView(this);
         web.setBackgroundColor(Color.parseColor("#E3F3EE"));
         WebSettings s = web.getSettings();
@@ -127,9 +131,11 @@ public class MainActivity extends Activity {
     private Intent recognizerIntent() {
         Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-CO");
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es-CO");
-        i.putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", new String[]{"es-419", "es-MX", "es-US"});
+        String lang = LANGS[Math.min(langIdx, LANGS.length - 1)];
+        if (!lang.isEmpty()) {
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang);
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, lang);
+        }
         i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 8);
         i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
         i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L);
@@ -167,7 +173,15 @@ public class MainActivity extends Activity {
                     return;
                 }
                 if (e == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) { deliver(null, "permission"); return; }
-                deliver(partials, partials.isEmpty() ? "nomatch" : null);
+                // 12/13: idioma no soportado o no disponible; 4/5/11: fallo del servicio. Probar el siguiente idioma.
+                if ((e == 12 || e == 13 || e == 4 || e == 5 || e == 11) && partials.isEmpty() && langTries < LANGS.length - 1) {
+                    langTries++;
+                    langIdx = (langIdx + 1) % LANGS.length;
+                    prefs.edit().putInt("langIdx", langIdx).apply();
+                    ui.postDelayed(MainActivity.this::startListening, 300);
+                    return;
+                }
+                deliver(partials, partials.isEmpty() ? String.valueOf(e) : null);
             }
             public void onResults(Bundle res) {
                 ArrayList<String> l = res.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
@@ -191,6 +205,7 @@ public class MainActivity extends Activity {
                 if (ttsReady) tts.stop();
                 delivered = false;
                 busyRetries = 0;
+                langTries = 0;
                 // pequeña pausa para que el altavoz se calle antes de abrir el micrófono
                 ui.postDelayed(MainActivity.this::startListening, 250);
             });
