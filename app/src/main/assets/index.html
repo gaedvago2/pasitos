@@ -1,0 +1,475 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}body{margin:0}</style></head><body>
+<title>Pasitos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: una sola pantalla tipo app; papel menta, piezas táctiles con borde inferior grueso como fichas de madera */
+:root{
+  --bg:#E3F3EE; --paper:#FFFFFF; --ink:#16404A; --ink-soft:#5A7C83; --line:#BFDDD5;
+  --tomato:#EF5A3C; --tomato-d:#C2402A; --sun:#FFC53D; --sun-d:#D99A12;
+  --leaf:#3A9E5B; --leaf-d:#2A7A44; --sea:#2E86C9; --sea-d:#1F639A;
+  --display:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--sea);outline-offset:3px}
+#app{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
+.screen{flex:1;display:flex;flex-direction:column;gap:16px;min-height:0}
+.scroll{overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding-bottom:12px}
+h1,h2{font-family:var(--display);margin:0;line-height:1;text-wrap:balance}
+h1{font-size:44px;font-weight:800;letter-spacing:-.5px}
+h2{font-size:30px;font-weight:800}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.icon-btn{width:48px;height:48px;border-radius:16px;background:var(--paper);display:grid;place-items:center;box-shadow:0 4px 0 var(--line)}
+.icon-btn svg{width:24px;height:24px}
+.hold{position:relative;overflow:hidden;padding:10px 14px;border-radius:14px;background:var(--paper);box-shadow:0 4px 0 var(--line);font-weight:800;font-size:13px;color:var(--ink-soft)}
+.hold i{position:absolute;inset:0;background:var(--sun);transform:scaleX(0);transform-origin:left;transition:transform .1s linear;z-index:0}
+.hold span{position:relative}
+.hold.on i{transform:scaleX(1);transition:transform 1.4s linear}
+
+/* tarjetas de ruta */
+.track{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;text-align:left;padding:16px;border-radius:24px;background:var(--paper);box-shadow:0 6px 0 var(--line);position:relative}
+.track:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
+.track .badge{height:96px;border-radius:20px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:34px;color:#fff;line-height:1}
+.track b{font-family:var(--display);font-size:26px;display:block;line-height:1.1}
+.track small{color:var(--ink-soft);font-weight:700;font-size:14px}
+.track.locked{opacity:.55}
+.bar{height:10px;border-radius:6px;background:var(--bg);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.review{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:var(--ink);color:#fff;text-align:left;box-shadow:0 6px 0 #0B2930}
+.review b{font-family:var(--display);font-size:22px;display:block}
+.review small{opacity:.8;font-weight:700}
+.album{display:flex;flex-wrap:wrap;gap:8px}
+.album span{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:var(--paper);box-shadow:0 3px 0 var(--line)}
+.album span.empty{background:transparent;box-shadow:inset 0 0 0 2px var(--line)}
+
+/* mapa */
+.path{display:flex;flex-direction:column;gap:10px;padding:8px 0 24px}
+.node{align-self:flex-start;display:flex;align-items:center;gap:14px;margin-left:calc(var(--x)*1%)}
+.node .disc{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:22px;color:#fff;box-shadow:0 6px 0 var(--d);background:var(--c);line-height:1;text-align:center;padding:4px}
+.node.locked .disc{background:#C9D9D5;box-shadow:0 6px 0 #AFC4BF;color:#7E9A97}
+.node .meta{text-align:left}
+.node .meta b{font-family:var(--display);font-size:20px;display:block}
+.stars{display:flex;gap:2px}
+.stars svg{width:20px;height:20px}
+
+/* lección */
+.lesson-top{display:flex;align-items:center;gap:12px}
+.pips{flex:1;display:flex;gap:4px}
+.pips i{flex:1;height:12px;border-radius:6px;background:var(--line)}
+.pips i.done{background:var(--leaf)}
+.pips i.now{background:var(--sun)}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:0;text-align:center}
+.prompt{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.15;margin:0;display:flex;align-items:center;gap:10px;justify-content:center;text-wrap:balance}
+.spk{width:52px;height:52px;flex:none;border-radius:50%;background:var(--sea);color:#fff;display:grid;place-items:center;box-shadow:0 4px 0 var(--sea-d)}
+.spk svg{width:26px;height:26px}
+.hero{background:var(--paper);border-radius:32px;box-shadow:0 8px 0 var(--line);padding:16px 28px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:200px;max-width:100%;box-sizing:border-box}
+.glyph{font-family:var(--display);font-weight:800;font-size:clamp(110px,36vw,180px);line-height:.95;color:var(--accent,var(--tomato))}
+.glyph small{font-size:.55em;margin-left:.15em;opacity:.8}
+.qty{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:230px}
+.qty i{width:22px;height:22px;border-radius:50%;background:var(--sun);box-shadow:inset 0 -3px 0 var(--sun-d)}
+.word{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px}
+.word .pic{font-size:44px}
+.word b{color:var(--accent,var(--tomato))}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%}
+.opt{aspect-ratio:1/1;max-width:100%;border-radius:28px;background:var(--paper);box-shadow:0 7px 0 var(--line);font-family:var(--display);font-weight:800;font-size:clamp(64px,22vw,96px);line-height:1;color:var(--ink);display:grid;place-items:center}
+.opts.three .opt{font-size:clamp(56px,18vw,84px)}
+.opt:active{transform:translateY(5px);box-shadow:0 2px 0 var(--line)}
+.opt:disabled{opacity:.3}
+.opt.hint{animation:pulse 1s ease-in-out infinite;box-shadow:0 7px 0 var(--leaf),0 0 0 5px var(--leaf)}
+.opt.right{background:var(--leaf);color:#fff;box-shadow:0 7px 0 var(--leaf-d)}
+.shake{animation:shake .4s}
+.objs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:320px}
+.obj{width:58px;height:58px;border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--line);font-size:32px;display:grid;place-items:center;position:relative}
+.obj.counted{background:var(--sun);box-shadow:0 4px 0 var(--sun-d)}
+.obj em{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;border-radius:12px;background:var(--ink);color:#fff;font-style:normal;font-family:var(--display);font-weight:800;font-size:15px;display:grid;place-items:center}
+.mini-opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.mini-opts .opt{width:84px;font-size:52px;border-radius:22px}
+.bigpic{font-size:110px;line-height:1}
+
+.mic-zone{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:150px}
+.mic{width:104px;height:104px;border-radius:50%;background:var(--tomato);color:#fff;display:grid;place-items:center;box-shadow:0 7px 0 var(--tomato-d);position:relative}
+.mic svg{width:46px;height:46px}
+.mic.listening::before,.mic.listening::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:4px solid var(--tomato);animation:ring 1.4s ease-out infinite}
+.mic.listening::after{animation-delay:.7s}
+.mic-label{font-weight:800;color:var(--ink-soft);font-size:15px}
+.heard{font-size:14px;color:var(--ink-soft);min-height:20px}
+.parent-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.pbtn{padding:14px 18px;border-radius:16px;font-weight:800;box-shadow:0 4px 0 var(--line);background:var(--paper)}
+.pbtn.go{background:var(--leaf);color:#fff;box-shadow:0 4px 0 var(--leaf-d)}
+.cta{padding:16px 22px;border-radius:18px;background:var(--leaf);color:#fff;font-family:var(--display);font-weight:800;font-size:22px;box-shadow:0 6px 0 var(--leaf-d)}
+.cta.alt{background:var(--paper);color:var(--ink);box-shadow:0 6px 0 var(--line)}
+.cta:active,.pbtn:active,.mic:active,.spk:active{transform:translateY(4px);box-shadow:none}
+
+/* premio */
+.burst{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:20}
+.burst svg{width:180px;height:180px;animation:pop .9s ease-out forwards}
+.result{align-items:center;justify-content:center;text-align:center}
+.result .big-stars{display:flex;gap:8px}
+.result .big-stars svg{width:64px;height:64px}
+.sticker{font-size:96px;line-height:1;animation:pop2 .8s ease-out}
+.name-card{background:var(--paper);border-radius:28px;box-shadow:0 8px 0 var(--line);padding:20px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:420px;box-sizing:border-box}
+.name-in{width:100%;box-sizing:border-box;font-family:var(--display);font-weight:800;font-size:34px;color:var(--ink);text-align:center;padding:12px 14px;border-radius:18px;border:3px solid var(--line);background:var(--bg);outline:none}
+.name-in:focus{border-color:var(--sea)}
+.wave{font-size:84px;line-height:1;animation:wave 1.6s ease-in-out infinite;transform-origin:70% 80%}
+@keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-8deg)}}
+.cheer{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--sun);color:var(--ink);font-family:var(--display);font-weight:800;font-size:20px;padding:10px 18px;border-radius:18px;box-shadow:0 5px 0 var(--sun-d);z-index:25;max-width:calc(100% - 32px);text-align:center;animation:pop2 .5s ease-out}
+.cheer.soft{background:var(--paper);box-shadow:0 5px 0 var(--line)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:min(420px,calc(100% - 32px));z-index:30;text-align:center}
+
+/* padres */
+.sheet{position:fixed;inset:0;background:rgba(10,30,35,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--paper);width:100%;max-width:560px;max-height:88%;overflow-y:auto;border-radius:28px 28px 0 0;padding:20px max(20px,env(safe-area-inset-left,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-right,0px));box-sizing:border-box;display:flex;flex-direction:column;gap:14px}
+.sheet p{margin:0;line-height:1.5;color:var(--ink);max-width:65ch}
+.sheet ol{margin:0;padding-left:20px;line-height:1.5;display:flex;flex-direction:column;gap:6px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-weight:700}
+.switch{width:56px;height:32px;border-radius:16px;background:var(--line);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.switch[aria-checked="true"]{background:var(--leaf)}
+.switch[aria-checked="true"]::after{left:28px}
+.stat{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px}
+.stat span:nth-child(even){font-variant-numeric:tabular-nums;font-weight:800}
+.danger{color:var(--tomato-d);font-weight:800;padding:12px 0;text-align:left}
+
+@keyframes ring{from{transform:scale(1);opacity:.8}to{transform:scale(1.45);opacity:0}}
+@keyframes pulse{50%{transform:scale(1.05)}}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+@keyframes pop{0%{transform:scale(.2) rotate(-30deg);opacity:0}40%{transform:scale(1.15) rotate(8deg);opacity:1}70%{transform:scale(1)}100%{transform:scale(1.1);opacity:0}}
+@keyframes pop2{0%{transform:scale(0) rotate(-40deg)}60%{transform:scale(1.25) rotate(10deg)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+
+<script>
+/* ---------- datos ---------- */
+const NUMW=['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez'];
+const NUMX={1:['un','una'],6:['ceis'],7:['ciete'],10:['dies']};
+const NUM=NUMW.map((w,i)=>({id:'n'+i,track:'num',show:String(i),name:w,n:i,accept:[String(i),w,...(NUMX[i]||[])]}));
+const VOW=[['A','a','abeja','🐝',['a','ah','ha','abeja']],['E','e','elefante','🐘',['e','eh','he','elefante']],['I','i','isla','🏝️',['i','y','hi','isla']],['O','o','oso','🐻',['o','oh','ho','oso']],['U','u','uvas','🍇',['u','uh','hu','uvas','uva']]]
+ .map(([L,name,word,pic,acc])=>({id:'v'+L,track:'vow',show:L,low:L.toLowerCase(),name,word,pic,starts:true,accept:acc}));
+const CX={M:['m'],P:['p'],S:['s'],L:['l'],T:['t'],D:['d'],N:['n'],F:['f'],B:['b','ve','v','be larga','be alta'],C:['c','se'],R:['r','ere'],G:['g','je'],J:['j'],V:['v','ve','be','ve corta','ve pequena','uve'],H:['h','ache'],K:['k','ca'],'Ñ':[],Q:['q','ku'],X:['x'],Y:['y','i griega','lle'],Z:['z','seta','ceta'],W:['w','doble ve','doble u','doble uve']};
+const CONS=[['M','eme','mono','🐒'],['P','pe','pato','🦆'],['S','ese','sol','☀️'],['L','ele','luna','🌙'],['T','te','tomate','🍅'],['D','de','dado','🎲'],['N','ene','nube','☁️'],['F','efe','foca','🦭'],['B','be','barco','⛵'],['C','ce','casa','🏠'],['R','erre','ratón','🐭'],['G','ge','gato','🐱'],['J','jota','jirafa','🦒'],['V','uve','vaca','🐄'],['H','hache','helado','🍦'],['K','ka','kiwi','🥝'],['Ñ','eñe','piña','🍍',false],['Q','cu','queso','🧀'],['X','equis','taxi','🚕',false],['Y','ye','yoyo','🪀'],['Z','zeta','zapato','👟'],['W','uve doble','wafle','🧇']]
+ .map(([L,name,word,pic,starts])=>({id:'c'+L,track:'abc',show:L,low:L.toLowerCase(),name,word,pic,starts:starts!==false,accept:[name,word,...CX[L]]}));
+const ALL=[...NUM,...VOW,...CONS];const ITEM=Object.fromEntries(ALL.map(i=>[i.id,i]));
+const TRACKS={
+ num:{t:'Números',sub:'Del 0 al 10',badge:'123',c:'var(--tomato)',d:'var(--tomato-d)',items:NUM},
+ vow:{t:'Vocales',sub:'A E I O U',badge:'aeiou',c:'var(--sun)',d:'var(--sun-d)',items:VOW},
+ abc:{t:'Abecedario',sub:'Se abre al terminar las vocales',badge:'abc',c:'var(--leaf)',d:'var(--leaf-d)',items:CONS}
+};
+const LEVELS={
+ num:[{t:'1 2 3',items:['n1','n2','n3'],st:'🐣'},{t:'4 5',items:['n4','n5'],st:'🐢'},{t:'6 7',items:['n6','n7'],st:'🦊'},{t:'8 9 10',items:['n8','n9','n10'],st:'🦁'},{t:'0',items:['n0'],st:'🚀'},{t:'Repaso',items:[],st:'🏆'}],
+ vow:[{t:'A E',items:['vA','vE'],st:'🐝'},{t:'I',items:['vI'],st:'🐠'},{t:'O U',items:['vO','vU'],st:'🐻'},{t:'Todas',items:[],st:'🌈'}],
+ abc:[{t:'M P S L',items:['cM','cP','cS','cL'],st:'🐙'},{t:'T D N F',items:['cT','cD','cN','cF'],st:'🦋'},{t:'B C R G',items:['cB','cC','cR','cG'],st:'🐳'},{t:'J V H K',items:['cJ','cV','cH','cK'],st:'🦉'},{t:'Ñ Q X',items:['cÑ','cQ','cX'],st:'🦖'},{t:'Y Z W',items:['cY','cZ','cW'],st:'🦄'},{t:'Repaso',items:[],st:'👑'}]
+};
+const MSG={
+ ok:['¡Muy bien, {n}!','¡Excelente, {n}!','¡Lo lograste, {n}!','¡Bravo, {n}!','¡Así se hace, {n}!','¡Eres una estrella, {n}!','¡Qué bien lo haces, {n}!','¡Lo sabías, {n}!'],
+ okAfterTry:['¡Eso es, {n}! No te rendiste.','¡Lo lograste, {n}! Intentarlo otra vez funciona.','¡Muy bien, {n}! Practicando se aprende.','¡Ahí está, {n}! Sabía que podías.'],
+ streak:['¡Tres seguidas, {n}! ¡Estás imparable!','¡Wow, {n}! ¡Vas volando!','¡Qué racha, {n}! ¡Sigue así!'],
+ no:['Casi, {n}. ¡Tú puedes!','No pasa nada, {n}. Intenta otra vez.','Equivocarse es parte de aprender, {n}. ¡Otra vez!','Uy, casi. Vamos, {n}, tú puedes.','Con calma, {n}. Vamos de nuevo.'],
+ help:['Te ayudo, {n}.','Mira, {n}, te doy una pista.','Vamos juntos, {n}.'],
+ heard0:['No te escuché, {n}. Habla un poquito más fuerte.','¿Me lo dices otra vez, {n}? Más fuerte.']
+};
+const fmt=t=>S.name?t.replace(/\{n\}/g,S.name):t.replace(/,? ?\{n\}/g,'');
+const msg=k=>fmt(rand(MSG[k]));
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function cheer(text,soft){document.querySelector('.cheer')?.remove();const d=document.createElement('div');d.className='cheer'+(soft?' soft':'');d.textContent=text;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+const OBJS=['🍎','🐟','⭐','🎈','🐞','🍓','🚗'];
+
+/* ---------- estado ---------- */
+const KEY='pasitos-v1';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+let S=Object.assign({stars:{},box:{},stickers:[],mic:true,unlockAll:false},load());
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const starsOf=(t,i)=>S.stars[t+i]||0;
+function levelOpen(t,i){if(S.unlockAll)return true;if(t==='abc'&&!trackOpen('abc'))return false;return i===0||starsOf(t,i-1)>=2}
+function trackOpen(t){return S.unlockAll||t!=='abc'||starsOf('vow',2)>=2}
+
+/* ---------- sonido y voz ---------- */
+let AC;
+function tone(fs,dur=.12,type='sine'){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime;fs.forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,t+i*dur);g.gain.exponentialRampToValueAtTime(.22,t+i*dur+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*dur+dur*1.8);o.connect(g).connect(AC.destination);o.start(t+i*dur);o.stop(t+i*dur+dur*2)})}catch(e){}}
+function ac(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();return AC}
+function glide(f1,f2,dur,type='sine',vol=.2){try{const c=ac(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.05)}catch(e){}}
+function claps(n=26,span=1.4){try{const c=ac(),t0=c.currentTime,len=c.sampleRate*.05,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+ for(let k=0;k<n;k++){const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=buf;f.type='bandpass';f.frequency.value=1200+Math.random()*1400;g.gain.value=.25+Math.random()*.25;s.connect(f).connect(g).connect(c.destination);s.start(t0+Math.random()*span)}}catch(e){}}
+const sfx={
+ ok:()=>{tone([660,880,1320]);setTimeout(()=>tone([1760,2093],.05,'triangle'),330)},
+ no:()=>glide(420,260,.35,'sine',.16),
+ tap:()=>tone([600],.06),
+ pop:()=>glide(300,900,.12,'sine',.18),
+ streak:()=>{tone([523,659,784,1046],.09,'square');setTimeout(()=>claps(14,.8),350)},
+ win:()=>{tone([523,659,784,1046,1318],.12);setTimeout(()=>claps(),500)}
+};
+let VOICE=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();VOICE=vs.find(v=>/^es[-_](CO|MX|US|419)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}catch(e){}}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const NB=window.PasitosNative||null;
+function hush(){try{NB?NB.stop():speechSynthesis.cancel()}catch(e){}}
+function say(text){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res()}};setTimeout(fin,900+text.length*120);
+ if(NB){window.__ttsDone=fin;try{NB.speak(text)}catch(e){fin()}return}
+ if(!('speechSynthesis' in window))return fin();try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=VOICE?VOICE.lang:'es-ES';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.15;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}})}
+
+/* ---------- reconocimiento de voz ---------- */
+const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+let micBroken=false;
+const micOn=()=>S.mic&&(!!NB||!!SRC)&&!micBroken;
+function listen(){if(NB)return new Promise(res=>{const tm=setTimeout(()=>{window.__sr=null;res([])},9000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
+ return new Promise(res=>{let r;try{r=new SRC()}catch(e){micBroken=true;return res(null)}
+ r.lang='es-CO';r.interimResults=false;r.maxAlternatives=5;r.continuous=false;
+ const out=[];let settled=false;const fin=v=>{if(!settled){settled=true;clearTimeout(tm);res(v)}};
+ r.onresult=e=>{for(const rr of e.results)for(let k=0;k<rr.length;k++)out.push(rr[k].transcript)};
+ r.onerror=e=>{if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)){micBroken=true;fin(null)}else fin(out)};
+ r.onend=()=>fin(out);
+ const tm=setTimeout(()=>{try{r.stop()}catch(e){}},7000);
+ try{r.start()}catch(e){micBroken=true;fin(null)}})}
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+function matches(it,alts){const acc=it.accept.map(norm);return alts.some(a=>{const n=norm(a),tk=n.split(' ');return acc.some(w=>w&&(n===w||tk.includes(w)||(w.length>=3&&n.includes(w))))})}
+
+/* ---------- utilidades ---------- */
+const app=document.getElementById('app');
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const art=it=>it.track==='num'?'el':'la';
+const label=it=>it.track==='num'?`el ${it.name}`:`la ${it.name}`;
+const ICON={
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+ close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ spk:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+ mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="8.5" y="3" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',
+ lock:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 018 0v3" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
+ star:(on)=>`<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.5l1.3-6.6L2.5 9.3l6.6-.8z" fill="${on?'var(--sun)':'var(--line)'}" stroke="${on?'var(--sun-d)':'none'}" stroke-width="1.2" stroke-linejoin="round"/></svg>`
+};
+const starsHTML=n=>`<span class="stars">${[1,2,3].map(k=>ICON.star(k<=n)).join('')}</span>`;
+function toast(msg){document.querySelector('.toast')?.remove();const d=document.createElement('div');d.className='toast';d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
+
+/* ---------- pantallas ---------- */
+let view='home',curTrack='num';
+function go(v,t){view=v;if(t)curTrack=t;hush();stepToken++;render()}
+function render(){if(!S.name&&view!=='name')view='name';({name:renderName,home:renderHome,map:renderMap,lesson:()=>renderLesson(),result:renderResult})[view]()}
+
+function renderName(){
+ const mic=micOn();
+ app.innerHTML=`<section class="screen result"><div class="wave" aria-hidden="true">👋</div>
+ <h2>¡Hola! ¿Cómo te llamas?</h2>
+ <div class="name-card"><label class="eyebrow" for="kidName">Nombre del niño o la niña</label>
+ <input id="kidName" class="name-in" maxlength="20" autocomplete="off" placeholder="Escribe aquí" value="${esc(S.name||'')}">
+ ${mic?'<button class="pbtn" data-act="namemic">🎤 Decirlo con el micrófono</button><div class="heard" id="heard"></div>':''}
+ <button class="pbtn" data-act="namehear">🔊 Escuchar cómo suena</button>
+ <button class="cta" data-act="namesave">¡Empezar!</button></div>
+ <p style="margin:0;max-width:34ch;font-weight:700;color:var(--ink-soft)">La app usará su nombre para animarlo cuando acierte y cuando se equivoque.</p></section>`;
+ const inp=document.getElementById('kidName');inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveName()});
+}
+const cleanName=t=>t.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]/g,'').trim().split(/\s+/).slice(0,2).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ').slice(0,20);
+function saveName(){const v=cleanName(document.getElementById('kidName').value);if(!v){toast('Escribe el nombre para empezar.');say('Primero escribe tu nombre.');return}
+ S.name=v;save();sfx.win();go('home');say(`¡Hola, ${v}! Qué alegría conocerte. Vamos a aprender los números y las letras jugando. ¡Toca un camino para empezar!`)}
+async function nameMic(){if(busy)return;busy=true;const h=document.getElementById('heard');if(h)h.textContent='Te escucho…';await say('Di tu nombre.');const alts=await listen();busy=false;
+ if(!alts||!alts.length){if(h)h.textContent='No escuché. Intenta otra vez o escríbelo.';return}
+ const v=cleanName(alts[0]);document.getElementById('kidName').value=v;if(h)h.textContent='';say(`¿Te llamas ${v}? Si está bien, toca Empezar.`)}
+
+function renderHome(){
+ const seen=Object.keys(S.box).length;
+ app.innerHTML=`<section class="screen"><div class="topbar"><div><div class="eyebrow">${S.name?"Hola, "+esc(S.name):"Aprender jugando"}</div><h1>Pasitos</h1></div>
+ <button class="hold" id="parents" aria-label="Mantén presionado para abrir el panel de padres"><i></i><span>Padres · mantén</span></button></div>
+ <div class="scroll">
+ ${Object.entries(TRACKS).map(([k,t])=>{const lv=LEVELS[k],done=lv.filter((_,i)=>starsOf(k,i)>=2).length,open=trackOpen(k);
+  return `<button class="track ${open?'':'locked'}" data-act="track" data-t="${k}"><span class="badge" style="background:${t.c};box-shadow:inset 0 -6px 0 ${t.d}">${open?t.badge:ICON.lock}</span>
+  <span><b>${t.t}</b><small>${k==='abc'&&open?'Las consonantes, en grupos':t.sub}</small><div class="bar"><i style="width:${done/lv.length*100}%;background:${t.c}"></i></div><small>${done} de ${lv.length} niveles</small></span></button>`}).join('')}
+ ${seen>=3?`<button class="review" data-act="mix"><span style="font-size:36px">🔁</span><span><b>Repaso de hoy</b><small>2 minutos con lo que ya sabe. Ayuda a no olvidar.</small></span></button>`:''}
+ <div><div class="eyebrow" style="margin-bottom:8px">Álbum de premios</div><div class="album">${Object.values(LEVELS).flat().map(l=>S.stickers.includes(l.st)?`<span>${l.st}</span>`:'<span class="empty"></span>').join('')}</div></div>
+ </div></section>`;
+ const h=document.getElementById('parents');let tm;
+ const start=e=>{e.preventDefault();h.classList.add('on');tm=setTimeout(()=>{h.classList.remove('on');openParents()},1400)};
+ const stop=()=>{clearTimeout(tm);h.classList.remove('on')};
+ h.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(ev=>h.addEventListener(ev,stop));
+ h.addEventListener('keydown',e=>{if(e.key==='Enter')openParents()});
+}
+
+function renderMap(){
+ const t=TRACKS[curTrack],xs=[0,30,52,30,0,22,46];
+ app.innerHTML=`<section class="screen"><div class="topbar"><button class="icon-btn" data-act="home" aria-label="Volver">${ICON.back}</button><h2>${t.t}</h2><span style="width:48px"></span></div>
+ <div class="scroll"><div class="path">${LEVELS[curTrack].map((l,i)=>{const open=levelOpen(curTrack,i),s=starsOf(curTrack,i);
+  return `<button class="node ${open?'':'locked'}" style="--x:${xs[i%xs.length]};--c:${t.c};--d:${t.d}" data-act="level" data-i="${i}"><span class="disc">${open?l.t:ICON.lock}</span><span class="meta"><b>Nivel ${i+1}</b>${open?starsHTML(s):'<small>Gana 2 estrellas antes</small>'}</span></button>`}).join('')}</div></div></section>`;
+}
+
+/* ---------- motor de lección ---------- */
+let L=null,stepToken=0,busy=false;
+const upTo=(t,li)=>LEVELS[t].slice(0,li+1).flatMap(l=>l.items.length?l.items:[]).concat(LEVELS[t][li].items.length?[]:[]);
+function poolFor(t,li){const p=LEVELS[t].slice(0,li+1).flatMap(l=>l.items);return p.length?p:TRACKS[t].items.map(i=>i.id)}
+function pickW(ids){const w=ids.map(id=>6-(S.box[id]||0));let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<ids.length;i++){r-=w[i];if(r<=0)return ids[i]}return ids[ids.length-1]}
+function typeFor(t,k,id){const it=ITEM[id];let ty=(t==='num'?['tap','count','say']:['tap','pic','say'])[k%3];if(ty==='count'&&it.n===0)ty='tap';if(ty==='pic'&&!it.starts)ty='tap';return ty}
+function buildSteps(t,li){
+ const fresh=LEVELS[t][li].items,pool=poolFor(t,li),prev=pool.filter(id=>!fresh.includes(id));
+ const steps=fresh.map(id=>({kind:'intro',id,pool}));let last=null;
+ for(let k=0;k<9;k++){const useFresh=fresh.length&&(k<5||!prev.length||Math.random()<.5);let id,tries=0;
+  do{id=useFresh?rand(fresh):pickW(prev.length?prev:pool)}while(id===last&&tries++<6);last=id;
+  steps.push({kind:typeFor(t,k,id),id,pool})}
+ return steps}
+function buildMix(){
+ const seen=Object.keys(S.box).filter(id=>ITEM[id]);const steps=[];let last=null;
+ for(let k=0;k<8;k++){let id,tries=0;do{id=pickW(seen)}while(id===last&&tries++<6);last=id;const t=ITEM[id].track;
+  steps.push({kind:typeFor(t,k,id),id,pool:seen.filter(x=>ITEM[x].track===t)})}
+ return steps}
+function startLesson(t,li){L={track:t,li,steps:t==='mix'?buildMix():buildSteps(t,li),i:0,first:0,total:0,again:new Set(),explained:new Set(),streak:0,greeted:false};view='lesson';runStep()}
+function runStep(){const tok=++stepToken;const st=L.steps[L.i];st.fails=0;st.counted=0;busy=false;renderLesson();setTimeout(()=>{if(tok===stepToken)speakPrompt(st)},300)}
+const cur=()=>L.steps[L.i];
+
+function optCount(){if(L.track==='mix')return 3;return Math.min(4,2+Math.floor(L.li/2)+(L.track==='abc'?1:0))}
+function makeOpts(st){
+ const it=ITEM[st.id],n=optCount();let others=shuffle(st.pool.filter(id=>id!==st.id));
+ if(others.length<n-1)others=others.concat(shuffle(TRACKS[it.track].items.map(i=>i.id).filter(id=>id!==st.id&&!others.includes(id))));
+ if(!st.opts)st.opts=shuffle([st.id,...others.slice(0,n-1)]);return st.opts}
+function wordHTML(it){if(!it.starts)return it.word.replace(new RegExp(it.show,'i'),m=>`<b>${m}</b>`);return `<b>${it.word[0]}</b>${it.word.slice(1)}`}
+function heroHTML(it,rich){
+ const acc=it.track==='num'?'var(--tomato)':it.track==='vow'?'var(--sun-d)':'var(--leaf)';
+ let h=`<div class="hero" style="--accent:${acc}"><div class="glyph">${it.show}${it.low?`<small>${it.low}</small>`:''}</div>`;
+ if(rich&&it.track==='num'&&it.n>0)h+=`<div class="qty">${'<i></i>'.repeat(it.n)}</div>`;
+ if(rich&&it.word)h+=`<div class="word"><span class="pic">${it.pic}</span><span>${wordHTML(it)}</span></div>`;
+ return h+'</div>'}
+function micHTML(st){
+ if(micOn())return `<div class="mic-zone"><button class="mic" data-act="mic" aria-label="Toca y habla">${ICON.mic}</button><div class="mic-label" id="micLabel">${st.kind==='intro'?'Ahora tú: toca y dilo':'Toca y dilo'}</div><div class="heard" id="heard"></div>${st.kind==='intro'&&st.fails>=2?'<button class="pbtn go" data-act="skip">Seguir</button>':''}</div>`;
+ return `<div class="mic-zone"><div class="mic-label">Que lo diga en voz alta. Un adulto confirma:</div><div class="parent-row"><button class="pbtn go" data-act="ok">✓ Lo dijo bien</button><button class="pbtn" data-act="again">Escuchar otra vez</button></div></div>`}
+
+function renderLesson(){
+ const st=cur(),it=ITEM[st.id];
+ const pips=L.steps.map((_,i)=>`<i class="${i<L.i?'done':i===L.i?'now':''}"></i>`).join('');
+ const prompt=t=>`<p class="prompt"><button class="spk" data-act="replay" aria-label="Escuchar otra vez">${ICON.spk}</button><span>${t}</span></p>`;
+ let body='';
+ if(st.kind==='intro')body=prompt(`Este es ${it.track==='num'?'el':'la'} ${it.track==='num'?it.name:'letra '+it.show}`)+heroHTML(it,true)+micHTML(st);
+ else if(st.kind==='say')body=prompt(it.track==='num'?'¿Qué número es?':'¿Qué letra es?')+heroHTML(it,false)+micHTML(st);
+ else if(st.kind==='tap'){const o=makeOpts(st);body=prompt(`Toca ${label(it)}`)+`<div class="opts ${o.length===3?'three':''}">${o.map(id=>`<button class="opt" data-act="opt" data-id="${id}">${ITEM[id].show}</button>`).join('')}</div>`}
+ else if(st.kind==='count'){const o=makeOpts(st);st.emo=st.emo||rand(OBJS);
+  body=prompt('¿Cuántos hay?')+`<div class="objs">${Array.from({length:it.n},(_,k)=>`<button class="obj" data-act="obj" data-k="${k}" aria-label="Contar">${st.emo}</button>`).join('')}</div><div class="mini-opts">${o.map(id=>`<button class="opt" data-act="opt" data-id="${id}">${ITEM[id].show}</button>`).join('')}</div>`}
+ else if(st.kind==='pic'){const o=makeOpts(st);body=prompt(`¿Con qué letra empieza <b>${it.word}</b>?`)+`<div class="bigpic">${it.pic}</div><div class="opts ${o.length===3?'three':''}">${o.map(id=>`<button class="opt" data-act="opt" data-id="${id}">${ITEM[id].show}</button>`).join('')}</div>`}
+ app.innerHTML=`<section class="screen"><div class="lesson-top"><button class="icon-btn" data-act="quit" aria-label="Salir">${ICON.close}</button><div class="pips">${pips}</div></div><div class="stage">${body}</div></section>`;
+}
+
+const EXPLAIN={
+ tap:'Escucha bien y toca el correcto.',
+ count:'Toca cada dibujo para contarlo. Después toca el número.',
+ pic:'Mira el dibujo y escucha cómo empieza la palabra.',
+ say:'Ahora te toca hablar. Toca el botón rojo y dilo en voz alta.'
+};
+function lessonGreeting(){
+ if(L.track==='mix')return fmt('¡Hola, {n}! Vamos a repasar lo que ya sabes. Así no se te olvida.');
+ const fresh=LEVELS[L.track][L.li].items.map(id=>ITEM[id]);
+ if(!fresh.length)return fmt('¡Vamos, {n}! Este es un nivel de repaso. Muéstrame todo lo que aprendiste.');
+ const names=fresh.map(i=>i.name);const list=names.length>1?names.slice(0,-1).join(', ')+' y '+names[names.length-1]:names[0];
+ const what=L.track==='num'?(names.length>1?'los números':'el número'):(names.length>1?'las letras':'la letra');
+ return fmt(`¡Hola, {n}! Hoy vas a aprender ${what} ${list}. Primero escucha y mira, después lo dices tú. ¡Vamos!`)}
+async function speakPrompt(st){const tok=stepToken;
+ if(!L.greeted){L.greeted=true;await say(lessonGreeting());if(tok!==stepToken)return}
+ if(st.kind!=='intro'&&!L.explained.has(st.kind)){L.explained.add(st.kind);await say(EXPLAIN[st.kind]);if(tok!==stepToken)return}
+ return promptOnly(st)}
+function promptOnly(st){const it=ITEM[st.id];
+ if(st.kind==='intro'){if(it.track==='num')return say(`Este es el ${it.name}. ¡${it.name}! Ahora dilo tú.`);return say(`Esta es la letra ${it.name}. ${it.name}, de ${it.word}. Ahora dila tú.`)}
+ if(st.kind==='say')return say(it.track==='num'?'¿Qué número es este?':'¿Qué letra es esta?');
+ if(st.kind==='tap')return say(`Toca ${label(it)}.`);
+ if(st.kind==='count')return say('¿Cuántos hay? Tócalos para contar.');
+ if(st.kind==='pic')return say(`${it.word}. ¿Con qué letra empieza ${it.word}?`)}
+
+function burst(){const d=document.createElement('div');d.className='burst';d.innerHTML=ICON.star(true);document.body.appendChild(d);setTimeout(()=>d.remove(),950)}
+async function success(st){const tok=stepToken;busy=true;const it=ITEM[st.id];burst();
+ let text;if(st.kind==='intro')text=fmt(rand(['¡Muy bien, {n}! ','¡Perfecto, {n}! ','¡Así se dice, {n}! ']))+cap(it.name)+'.';
+ else if(st.fails===0){L.streak++;if(L.streak%3===0){sfx.streak();text=msg('streak')}else{sfx.ok();text=msg('ok')+' '+cap(it.name)+'.'}}
+ else{L.streak=0;sfx.ok();text=msg('okAfterTry')}
+ if(st.kind==='intro')sfx.ok();cheer(text.split(/[.!] /)[0].replace(/[¡!]/g,'')+(text.includes('!')?' ⭐':''));
+ await say(text);if(tok!==stepToken)return;next(st.fails===0)}
+function next(firstTry){const st=cur();
+ if(st.kind!=='intro'){if(!st.extra){L.total++;if(firstTry)L.first++}
+  const b=S.box[st.id]||0;S.box[st.id]=firstTry?Math.min(5,b+1):Math.max(0,b-1);
+  if(!firstTry&&!L.again.has(st.id)&&L.steps.length<15){L.again.add(st.id);L.steps.push({kind:st.kind==='count'||st.kind==='pic'?'tap':st.kind,id:st.id,pool:st.pool,extra:true})}}
+ else if(S.box[st.id]==null)S.box[st.id]=0;
+ save();L.i++;if(L.i>=L.steps.length)finish();else runStep()}
+
+async function onMic(){const st=cur();if(busy||!micOn())return;const tok=stepToken;busy=true;
+ const btn=app.querySelector('.mic'),lab=document.getElementById('micLabel');btn?.classList.add('listening');if(lab)lab.textContent='Te escucho…';
+ hush();const alts=await listen();if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
+ if(alts===null){toast('El micrófono no está disponible aquí. Un adulto puede confirmar con los botones.');renderLesson();return}
+ const h=document.getElementById('heard');if(h)h.textContent=alts.length?`Escuché: “${alts[0]}”`:'No escuché nada';
+ if(lab)lab.textContent='Toca y dilo';
+ if(alts.length&&matches(ITEM[st.id],alts))success(st);else failSay(st,!alts.length)}
+async function failSay(st,silent){const it=ITEM[st.id],tok=stepToken;st.fails++;L.streak=0;sfx.no();
+ const pre=silent?msg('heard0'):msg('no');cheer(fmt('¡Tú puedes, {n}!'),true);
+ if(st.kind==='intro'){if(st.fails>=2)renderLesson();await say(`${pre} Escucha: ${it.name}. ¡${it.name}!`);return}
+ if(st.fails===1)return say(pre);
+ if(st.fails===2)return say(`${msg('help')} Es ${art(it)} ${it.name}. Dilo conmigo: ${it.name}.`);
+ busy=true;await say(fmt(`Es ${art(it)} ${it.name}. La próxima vez lo vas a lograr, {n}. ¡Seguimos!`));if(tok===stepToken)next(false)}
+async function onOpt(btn){const st=cur();if(busy)return;const id=btn.dataset.id,it=ITEM[st.id];
+ if(id===st.id){btn.classList.add('right');return success(st)}
+ st.fails++;L.streak=0;sfx.no();btn.disabled=true;btn.classList.add('shake');cheer(fmt('¡Tú puedes, {n}!'),true);
+ if(st.fails>=2){app.querySelector(`.opt[data-id="${st.id}"]`)?.classList.add('hint');say(`${msg('help')} Es este, ${it.name}. Tócalo.`)}
+ else if(st.kind==='count')say(`${msg('no')} Cuéntalos tocándolos, uno por uno.`);
+ else say(`${msg('no')} Busca ${label(it)}.`)}
+function onObj(btn){const st=cur();if(btn.classList.contains('counted'))return;st.counted++;btn.classList.add('counted');btn.insertAdjacentHTML('beforeend',`<em>${st.counted}</em>`);sfx.pop();say(NUMW[st.counted])}
+
+function finish(){
+ const ratio=L.total?L.first/L.total:1;const stars=ratio>=.9?3:ratio>=.7?2:1;let sticker=null,key=L.track+L.li;
+ if(L.track!=='mix'){S.stars[key]=Math.max(S.stars[key]||0,stars);const st=LEVELS[L.track][L.li].st;if(stars>=2&&!S.stickers.includes(st)){S.stickers.push(st);sticker=st}}
+ save();L.result={stars,sticker};view='result';render();sfx.win();
+ say(stars>=2?fmt(`¡Felicitaciones, {n}! Ganaste ${stars} estrellas${sticker?' y un premio nuevo para tu álbum':''}. ¡Estoy muy orgulloso de ti!`):fmt('¡Buen trabajo, {n}! Cada vez lo haces mejor. Si jugamos otra vez, ganas más estrellas.'))}
+function renderResult(){const {stars,sticker}=L.result,mix=L.track==='mix';
+ const hasNext=!mix&&L.li+1<LEVELS[L.track].length&&levelOpen(L.track,L.li+1);
+ app.innerHTML=`<section class="screen result"><div class="eyebrow">${mix?'Repaso terminado':'Nivel '+(L.li+1)+' terminado'}</div>
+ <h2>${stars>=2?'¡Felicitaciones'+(S.name?', '+esc(S.name):'')+'!':'¡Buen trabajo'+(S.name?', '+esc(S.name):'')+'!'}</h2><div class="big-stars">${[1,2,3].map(k=>ICON.star(k<=stars)).join('')}</div>
+ ${sticker?`<div class="sticker">${sticker}</div><div style="font-weight:800">Premio nuevo en tu álbum</div>`:''}
+ ${!mix&&stars<2?'<p style="max-width:30ch;margin:0;font-weight:700;color:var(--ink-soft)">Con 2 estrellas se abre el siguiente nivel.</p>':''}
+ <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px">
+ ${hasNext?'<button class="cta" data-act="nextlevel">Siguiente nivel</button>':''}
+ ${mix?'':`<button class="cta ${hasNext?'alt':''}" data-act="retry">Jugar otra vez</button>`}
+ <button class="cta alt" data-act="${mix?'home':'backmap'}">${mix?'Inicio':'Ver niveles'}</button></div></section>`}
+
+/* ---------- panel de padres ---------- */
+function openParents(){
+ const seen=Object.keys(S.box).filter(id=>ITEM[id]);const strong=seen.filter(id=>S.box[id]>=3).length;
+ const d=document.createElement('div');d.className='sheet';
+ d.innerHTML=`<div class="sheet-in" role="dialog" aria-label="Panel de padres"><div class="topbar"><h2>Panel de padres</h2><button class="icon-btn" data-x aria-label="Cerrar">${ICON.close}</button></div>
+ <p>Cada nivel sigue el mismo orden, basado en prácticas usadas en educación inicial:</p>
+ <ol><li><b>Modelar sin error.</b> Primero ve y escucha el símbolo nuevo con su cantidad o su dibujo, y lo repite. No se puede fallar en esta parte.</li>
+ <li><b>Reconocer, luego recordar.</b> Primero elige entre opciones (más fácil), después lo dice solo con el micrófono (más difícil).</li>
+ <li><b>Pistas que se retiran.</b> Al segundo error se ilumina la respuesta correcta, así nunca se queda atascado.</li>
+ <li><b>Repaso espaciado.</b> Lo que falla vuelve a salir más seguido; lo que domina, menos. Usa el Repaso de hoy a diario.</li>
+ <li><b>Pocos a la vez.</b> 1 a 4 símbolos nuevos por nivel, mezclados con los anteriores. Sesiones de 3 a 5 minutos rinden más que una larga.</li></ol>
+ <div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Premios</span><span>${S.stickers.length}</span>
+ ${seen.length?`<span>Por reforzar</span><span>${seen.filter(id=>S.box[id]<2).map(id=>ITEM[id].show).join(' ')||'—'}</span>`:''}</div>
+ <div class="toggle"><span>Usar micrófono<br><small style="color:var(--ink-soft)">${(NB||SRC)?(micBroken?'Bloqueado en esta vista: usa la app instalada':'Disponible'):'Este navegador no reconoce voz'}</small></span><button class="switch" role="switch" aria-checked="${S.mic}" data-k="mic" aria-label="Usar micrófono"></button></div>
+ <div class="toggle"><span>Abrir todos los niveles</span><button class="switch" role="switch" aria-checked="${S.unlockAll}" data-k="unlockAll" aria-label="Abrir todos los niveles"></button></div>
+ <div class="toggle"><span>Nombre: <b>${esc(S.name||"—")}</b></span><button class="pbtn" data-rename>Cambiar</button></div><button class="danger" data-reset>Borrar el progreso</button></div>`;
+ document.body.appendChild(d);
+ d.addEventListener('click',e=>{
+  if(e.target===d||e.target.closest('[data-x]')){d.remove();render();return}
+  const sw=e.target.closest('.switch');if(sw){const k=sw.dataset.k;S[k]=!S[k];if(k==='mic'&&S.mic)micBroken=false;sw.setAttribute('aria-checked',S[k]);save();return}
+  if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
+  const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},stickers:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
+ })}
+
+/* ---------- eventos ---------- */
+app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+ if(a==='track'){const t=b.dataset.t;if(!trackOpen(t)){toast('Primero gana 2 estrellas en el nivel O U de las vocales.');say('Primero terminemos las vocales.');return}sfx.tap();go('map',t);say(fmt(`¡Vamos con ${t==='num'?'los números':t==='vow'?'las vocales':'el abecedario'}, {n}! Elige un nivel.`))}
+ else if(a==='home')go('home');
+ else if(a==='namesave')saveName();
+ else if(a==='namehear'){const v=cleanName(document.getElementById('kidName').value);say(v?`¡Hola, ${v}!`:'Escribe tu nombre.')}
+ else if(a==='namemic')nameMic();
+ else if(a==='level'){const i=+b.dataset.i;if(!levelOpen(curTrack,i)){toast('Gana 2 estrellas en el nivel anterior para abrir este.');return}sfx.tap();startLesson(curTrack,i)}
+ else if(a==='mix'){sfx.tap();startLesson('mix',0)}
+ else if(a==='quit'){L.track==='mix'?go('home'):go('map')}
+ else if(a==='replay')promptOnly(cur());
+ else if(a==='mic')onMic();
+ else if(a==='ok'){if(!busy)success(cur())}
+ else if(a==='again'){const st=cur(),it=ITEM[st.id];st.fails++;say(`Escucha: ${it.name}. Ahora tú.`)}
+ else if(a==='skip'){if(!busy){busy=true;next(false)}}
+ else if(a==='opt')onOpt(b);
+ else if(a==='obj')onObj(b);
+ else if(a==='nextlevel')startLesson(L.track,L.li+1);
+ else if(a==='retry')startLesson(L.track,L.li);
+ else if(a==='backmap')go('map',L.track);
+});
+render();
+</script>
+
+</body></html>
