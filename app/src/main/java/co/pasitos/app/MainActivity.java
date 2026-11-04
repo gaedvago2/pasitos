@@ -41,6 +41,9 @@ public class MainActivity extends Activity {
     private static final String[] LANGS = {"es-CO", "es-US", "es-MX", "es-ES", ""};
     private int langIdx = 0;
     private int langTries = 0;
+    private boolean voiced = false;
+    private float maxRms = -100f;
+    private ArrayList<String> hints = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle b) {
@@ -124,13 +127,16 @@ public class MainActivity extends Activity {
             JSONObject o = new JSONObject();
             o.put("alts", new JSONArray(alts == null ? new ArrayList<String>() : alts));
             if (err != null) o.put("err", err);
+            o.put("voiced", voiced || maxRms > 5f);
             js("window.__sr&&window.__sr(" + o.toString() + ")");
         } catch (Exception ignored) {}
     }
 
     private Intent recognizerIntent() {
         Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        // El modelo de búsqueda web está ajustado para frases muy cortas (una palabra).
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        if (!hints.isEmpty()) i.putExtra("android.speech.extra.BIASING_STRINGS", hints);
         String lang = LANGS[Math.min(langIdx, LANGS.length - 1)];
         if (!lang.isEmpty()) {
             i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang);
@@ -138,9 +144,6 @@ public class MainActivity extends Activity {
         }
         i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 8);
         i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1200L);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1500L);
         i.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getPackageName());
         return i;
     }
@@ -154,11 +157,13 @@ public class MainActivity extends Activity {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) { deliver(null, "permission"); return; }
         if (sr != null) { try { sr.destroy(); } catch (Exception ignored) {} }
         partials = new ArrayList<>();
+        voiced = false;
+        maxRms = -100f;
         sr = SpeechRecognizer.createSpeechRecognizer(this);
         sr.setRecognitionListener(new RecognitionListener() {
             public void onReadyForSpeech(Bundle p) { js("window.__srReady&&window.__srReady()"); }
-            public void onBeginningOfSpeech() {}
-            public void onRmsChanged(float v) {}
+            public void onBeginningOfSpeech() { voiced = true; }
+            public void onRmsChanged(float v) { if (v > maxRms) maxRms = v; }
             public void onBufferReceived(byte[] buf) {}
             public void onEndOfSpeech() {}
             public void onEvent(int t, Bundle p) {}
@@ -200,6 +205,12 @@ public class MainActivity extends Activity {
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "u" + System.nanoTime());
         }
         @JavascriptInterface public void stop() { if (ttsReady) tts.stop(); }
+        @JavascriptInterface public void listenFor(String json) {
+            ArrayList<String> h = new ArrayList<>();
+            try { JSONArray a = new JSONArray(json); for (int k = 0; k < a.length(); k++) h.add(a.getString(k)); } catch (Exception ignored) {}
+            hints = h;
+            listen();
+        }
         @JavascriptInterface public void listen() {
             ui.post(() -> {
                 if (ttsReady) tts.stop();

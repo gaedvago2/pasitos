@@ -263,7 +263,7 @@ function say(text){return new Promise(res=>{let done=false;const fin=()=>{if(!do
 const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
 let micBroken=false;
 const micOn=()=>S.mic&&(!!NB||!!SRC)&&!micBroken;
-function listen(onReady){if(NB)return new Promise(res=>{window.__srReady=()=>{onReady&&onReady()};const tm=setTimeout(()=>{window.__sr=null;res([])},10000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;window.__lastSrErr=j.err||'';if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
+function listen(onReady,hints){if(NB)return new Promise(res=>{window.__lastVoiced=false;window.__srReady=()=>{onReady&&onReady()};const tm=setTimeout(()=>{window.__sr=null;res([])},10000);window.__sr=j=>{clearTimeout(tm);window.__sr=null;window.__lastSrErr=j.err||'';window.__lastVoiced=!!j.voiced;if(j.err==='permission'){micBroken=true;return res(null)}res(j.alts||[])};try{if(hints&&NB.listenFor)NB.listenFor(JSON.stringify(hints));else NB.listen()}catch(e){clearTimeout(tm);micBroken=true;res(null)}});
  return new Promise(res=>{let r;try{r=new SRC()}catch(e){micBroken=true;return res(null)}
  r.lang='es-CO';r.interimResults=false;r.maxAlternatives=5;r.continuous=false;
  const out=[];let settled=false;const fin=v=>{if(!settled){settled=true;clearTimeout(tm);res(v)}};
@@ -460,12 +460,14 @@ function next(firstTry){const st=cur();
 
 async function onMic(){const st=cur();if(busy||!micOn())return;const tok=stepToken;busy=true;
  const btn=app.querySelector('.mic'),lab=document.getElementById('micLabel');btn?.classList.add('listening');if(lab)lab.textContent='Te escucho…';
- hush();if(lab)lab.textContent=NB?'Preparando…':'¡Habla ahora!';const alts=await listen(()=>{if(lab&&tok===stepToken)lab.textContent='¡Habla ahora!'});if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
+ hush();if(lab)lab.textContent=NB?'Preparando…':'¡Habla ahora!';const it0=ITEM[st.id],hints=[...new Set([...it0.accept.filter(a=>!/^\d+$/.test(a)),...TRACKS[it0.track].items.map(x=>x.name)])];
+ const alts=await listen(()=>{if(lab&&tok===stepToken)lab.textContent='¡Habla ahora!'},hints);if(tok!==stepToken)return;busy=false;btn?.classList.remove('listening');
  if(alts===null){toast('El micrófono no está disponible aquí. Un adulto puede confirmar con los botones.');renderLesson();return}
  const h=document.getElementById('heard');if(h)h.textContent=alts.length?`Escuché: “${alts[0]}”`:'';
  if(lab)lab.textContent='Toca el micrófono para hablar';
  const r=classify(ITEM[st.id],alts);
  if(r.ok)success(st);
+ else if(!alts.length&&window.__lastVoiced){if(st.kind==='intro'||st.fails>=1){st.lenient=true;success(st)}else failSay(st,false)}
  else if(!alts.length)failSay(st,true);
  else if(r.other)wrongSay(st,r.other);
  else if(st.fails>=1){st.lenient=true;success(st)}
@@ -564,8 +566,8 @@ function openParents(){
   if(e.target===d||e.target.closest('[data-x]')){d.remove();render();return}
   const sw=e.target.closest('.switch');if(sw){const k=sw.dataset.k;S[k]=!S[k];if(k==='mic'&&S.mic)micBroken=false;sw.setAttribute('aria-checked',S[k]);save();return}
   if(e.target.closest('[data-testmic]')){const out=d.querySelector('#micTest');if(!micOn()){out.textContent='El micrófono no está disponible o está apagado.';return}out.textContent='Preparando…';
-   listen(()=>{out.textContent='¡Habla ahora! Di un número.'}).then(alts=>{if(alts===null){out.textContent='Sin permiso de micrófono. Revísalo en Ajustes del celular → Apps → Pasitos → Permisos.';return}
-    out.textContent=alts.length?'Entendí: '+alts.slice(0,5).join(' | '):'No entendí nada'+(window.__lastSrErr?' (código '+window.__lastSrErr+')':'')+'. Prueba más cerca o revisa que la app Google esté actualizada.'});return}
+   listen(()=>{out.textContent='¡Habla ahora! Di un número.'},NUMW.slice()).then(alts=>{if(alts===null){out.textContent='Sin permiso de micrófono. Revísalo en Ajustes del celular → Apps → Pasitos → Permisos.';return}
+    out.textContent=alts.length?'Entendí: '+alts.slice(0,5).join(' | '):(window.__lastVoiced?'Te escuché hablar, pero Google no reconoció la palabra':'No escuché voz')+(window.__lastSrErr?' (código '+window.__lastSrErr+')':'')+'. En la lección esto ya cuenta como intento.'});return}
   if(e.target.closest('[data-testvoice]')){const sel=d.querySelector('#voiceSel');if(sel){NB.setVoice(sel.value);S.voice=sel.value;save();say(fmt('¡Hola, entrenador {n}! Así suena mi voz. Vamos a aprender los números: uno, dos, tres.'))}return}
   if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
   const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
