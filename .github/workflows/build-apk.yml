@@ -21,14 +21,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Pasitos-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/*/debug/*.apk
       - name: Publicar APK en la rama apk
         run: |
-          mkdir -p /tmp/out && cp app/build/outputs/apk/debug/app-debug.apk /tmp/out/Pasitos.apk
+          mkdir -p /tmp/out && cp app/build/outputs/apk/criaturas/debug/app-criaturas-debug.apk /tmp/out/Pasitos.apk && cp app/build/outputs/apk/robots/debug/app-robots-debug.apk /tmp/out/PasitosRobots.apk
           cd /tmp/out
           git init -q -b apk
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add Pasitos.apk
+          git add Pasitos.apk PasitosRobots.apk
           git commit -q -m "APK compilado"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk

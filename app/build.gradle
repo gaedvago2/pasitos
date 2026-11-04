@@ -6,8 +6,31 @@ android {
         applicationId 'co.pasitos.app'
         minSdk 24
         targetSdk 34
-        versionCode 6
-        versionName '2.3'
+        versionCode 7
+        versionName '3.0'
+    }
+    signingConfigs {
+        fija {
+            storeFile file('pasitos.keystore')
+            storePassword 'pasitos123'
+            keyAlias 'pasitos'
+            keyPassword 'pasitos123'
+        }
+    }
+    buildTypes {
+        debug { signingConfig signingConfigs.fija }
+    }
+    flavorDimensions 'tema'
+    productFlavors {
+        criaturas {
+            dimension 'tema'
+            resValue 'string', 'app_name', 'Pasitos'
+        }
+        robots {
+            dimension 'tema'
+            applicationIdSuffix '.robots'
+            resValue 'string', 'app_name', 'Pasitos Robots'
+        }
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
