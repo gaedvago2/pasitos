@@ -160,6 +160,14 @@ h2{font-size:30px;font-weight:800}
 .evo-glow{filter:brightness(2.2) drop-shadow(0 0 18px #fff);transition:filter .3s}
 .evo-pulse{animation:evopulse .35s ease-in-out infinite alternate}
 @keyframes evopulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.12)}}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gcard{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;padding:8px;border-radius:14px;background:var(--bg);min-width:0}
+.gcard .rb{width:68px;height:68px;margin:-6px}
+.gcard b{font-family:var(--display);font-size:17px;display:block;line-height:1.1}
+.gcard small{display:block;font-size:12px;color:var(--ink-soft);font-weight:700;line-height:1.3}
+.gcard .ok{color:var(--leaf-d)}
+.gcard.evo{background:var(--paper);box-shadow:inset 0 0 0 2px var(--line)}
+.gsec{font-family:var(--display);font-weight:800;font-size:18px;margin:6px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:min(420px,calc(100% - 32px));z-index:30;text-align:center}
 
 /* padres */
@@ -611,6 +619,15 @@ function voiceRow(){const vs=nativeVoices();if(!vs.length)return '<div class="to
  <select id="voiceSel" style="font:inherit;font-weight:700;padding:10px;border-radius:12px;border:2px solid var(--line);max-width:100%;min-width:0;flex:1">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?'selected':''}>${v.latam?'Latina':'España/otra'} · ${esc(v.locale)}${v.net?' · requiere internet':''} · ${esc(v.name.split('#').pop().slice(-12))}</option>`).join('')}</select>
  <button class="pbtn" data-testvoice>Probar</button></div>
  ${vs.some(v=>v.latam)?'':'<p style="font-size:14px">No hay voz latina instalada. En el celular ve a Ajustes → Idioma → Salida de texto a voz → Motor de Google → Instalar datos de voz → Español (Estados Unidos). Esa es la voz latina de Google.</p>'}`}
+function galleryHTML(){const rows=[];
+ Object.entries(LEVELS).forEach(([t,lv])=>lv.forEach((l,i)=>{const k=l.mon,m=MONS[k],got=S.caught.includes(k);
+  let h=`<div class="gcard"><span>${m.e}</span><span style="min-width:0"><b>${m.n}</b><small>Tipo ${m.t}</small><small>${TRACKS[t].t} · Nivel ${i+1}</small><small class="${got?'ok':''}">${got?'✓ Capturado':'Por ganar'}</small></span></div>`;
+  if(m.evo){const ek=Object.keys(EVOS).find(x=>EVOS[x]===k),md=MEDALS.find(x=>x.at===ek),ev=S.evolved.includes(k);
+   h+=`<div class="gcard evo"><span>${m.e2}</span><span style="min-width:0"><b>${m.evo}</b><small>Evolución de ${m.n}</small><small>Con la ${md?md.n:'medalla'}</small><small class="${ev?'ok':''}">${ev?'✓ Evolucionado':'Por ganar'}</small></span></div>`}
+  rows.push({t,h})}));
+ const total=Object.keys(MONS).length+Object.values(MONS).filter(m=>m.evo).length,have=S.caught.length+S.evolved.length;
+ return `<h3 class="gsec">Criaturas del juego · ${have} de ${total}</h3><p style="font-size:14px">Todas las criaturas que tu hijo puede ganar. Él solo ve las siluetas hasta capturarlas, así que aquí puedes ver las sorpresas que le esperan.</p>`+
+  Object.keys(TRACKS).map(t=>`<div class="eyebrow">${TRACKS[t].t}</div><div class="gal">${rows.filter(r=>r.t===t).map(r=>r.h).join('')}</div>`).join('')}
 function openParents(){
  const seen=Object.keys(S.box).filter(id=>ITEM[id]);const strong=seen.filter(id=>S.box[id]>=3).length;
  const d=document.createElement('div');d.className='sheet';
@@ -621,7 +638,7 @@ function openParents(){
  <li><b>Pistas que se retiran.</b> Al segundo error se ilumina la respuesta correcta, así nunca se queda atascado.</li>
  <li><b>Repaso espaciado.</b> Lo que falla vuelve a salir más seguido; lo que domina, menos. Usa el Repaso de hoy a diario.</li>
  <li><b>Pocos a la vez.</b> 1 a 4 símbolos nuevos por nivel, mezclados con los anteriores. Sesiones de 3 a 5 minutos rinden más que una larga.</li></ol>
- <div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Criaturas capturadas</span><span>${S.caught.length} de ${Object.keys(MONS).length}</span><span>Medallas</span><span>${S.medals.length} de ${MEDALS.length}</span>
+ ${galleryHTML()}<h3 class="gsec">Progreso</h3><div class="stat"><span>Símbolos vistos</span><span>${seen.length} de ${ALL.length}</span><span>Bien aprendidos</span><span>${strong}</span><span>Criaturas capturadas</span><span>${S.caught.length} de ${Object.keys(MONS).length}</span><span>Medallas</span><span>${S.medals.length} de ${MEDALS.length}</span>
  ${seen.length?`<span>Por reforzar</span><span>${seen.filter(id=>S.box[id]<2).map(id=>ITEM[id].show).join(' ')||'—'}</span>`:''}</div>
  ${NB&&NB.voices?voiceRow():''}
  <div class="toggle"><span>Usar micrófono<br><small style="color:var(--ink-soft)">${(NB||SRC)?(micBroken?'Bloqueado en esta vista: usa la app instalada':'Disponible'):'Este navegador no reconoce voz'}</small></span><button class="switch" role="switch" aria-checked="${S.mic}" data-k="mic" aria-label="Usar micrófono"></button></div>
