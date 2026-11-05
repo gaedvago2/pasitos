@@ -154,6 +154,12 @@ h2{font-size:30px;font-weight:800}
 @keyframes throw{0%{bottom:20px;transform:rotate(0)}60%{bottom:200px}100%{bottom:140px;transform:rotate(720deg)}}
 @keyframes land{from{bottom:140px}to{bottom:20px}}
 @keyframes wob{25%{transform:rotate(-22deg)}75%{transform:rotate(22deg)}}
+.rb{width:1.3em;height:1.3em;vertical-align:middle;display:inline-block}
+.team .mon span .rb{width:52px;height:52px}
+.cap-mon .rb{width:170px;height:170px}
+.evo-glow{filter:brightness(2.2) drop-shadow(0 0 18px #fff);transition:filter .3s}
+.evo-pulse{animation:evopulse .35s ease-in-out infinite alternate}
+@keyframes evopulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.12)}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:min(420px,calc(100% - 32px));z-index:30;text-align:center}
 
 /* padres */
@@ -197,15 +203,59 @@ const TRACKS={
  abc:{t:'Abecedario',sub:'Se abre al terminar las vocales',badge:'abc',c:'var(--leaf)',d:'var(--leaf-d)',items:CONS}
 };
 const LEVELS={
- num:[{t:'1 2 3',items:['n1','n2','n3'],mon:'pipio'},{t:'4 5',items:['n4','n5'],mon:'tortu'},{t:'6 7',items:['n6','n7'],mon:'zorbi'},{t:'8 9 10',items:['n8','n9','n10'],mon:'pinchin'},{t:'0',items:['n0'],mon:'ulu'},{t:'Repaso',items:[],mon:'draki'}],
- vow:[{t:'A E',items:['vA','vE'],mon:'zumbi'},{t:'I',items:['vI'],mon:'burbu'},{t:'O U',items:['vO','vU'],mon:'osote'},{t:'Todas',items:[],mon:'iris'}],
- abc:[{t:'M P S L',items:['cM','cP','cS','cL'],mon:'pulpin'},{t:'T D N F',items:['cT','cD','cN','cF'],mon:'alita'},{t:'B C R G',items:['cB','cC','cR','cG'],mon:'pingui'},{t:'J V H K',items:['cJ','cV','cH','cK'],mon:'lagar'},{t:'Ñ Q X',items:['cÑ','cQ','cX'],mon:'brincos'},{t:'Y Z W',items:['cY','cZ','cW'],mon:'rexi'},{t:'Repaso',items:[],mon:'dracolor'}]
+ num:[{t:'1 2 3',items:['n1','n2','n3'],mon:'llamin'},{t:'4 5',items:['n4','n5'],mon:'gotin'},{t:'6 7',items:['n6','n7'],mon:'brotin'},{t:'8 9 10',items:['n8','n9','n10'],mon:'voltin'},{t:'0',items:['n0'],mon:'piedrin'},{t:'Repaso',items:[],mon:'lucerito'}],
+ vow:[{t:'A E',items:['vA','vE'],mon:'plumin'},{t:'I',items:['vI'],mon:'burbujo'},{t:'O U',items:['vO','vU'],mon:'musguin'},{t:'Todas',items:[],mon:'destellin'}],
+ abc:[{t:'M P S L',items:['cM','cP','cS','cL'],mon:'escarchin'},{t:'T D N F',items:['cT','cD','cN','cF'],mon:'brasita'},{t:'B C R G',items:['cB','cC','cR','cG'],mon:'brisita'},{t:'J V H K',items:['cJ','cV','cH','cK'],mon:'rocadin'},{t:'Ñ Q X',items:['cÑ','cQ','cX'],mon:'chispin'},{t:'Y Z W',items:['cY','cZ','cW'],mon:'coralin'},{t:'Repaso',items:[],mon:'astrin'}]
 };
-const MONS={
- pipio:{n:'Pipío',e:'🐣',t:'Aire'},tortu:{n:'Tortulín',e:'🐢',t:'Agua'},zorbi:{n:'Zorbi',e:'🦊',t:'Fuego'},pinchin:{n:'Pinchín',e:'🦔',t:'Planta'},ulu:{n:'Ulú',e:'🦉',t:'Aire'},draki:{n:'Draki',e:'🐉',t:'Estrella'},
- zumbi:{n:'Zumbi',e:'🐝',t:'Rayo'},burbu:{n:'Burbujín',e:'🐠',t:'Agua'},osote:{n:'Osote',e:'🐻',t:'Roca'},iris:{n:'Irisa',e:'🦄',t:'Estrella'},
- pulpin:{n:'Pulpín',e:'🐙',t:'Agua'},alita:{n:'Alita',e:'🦋',t:'Aire'},pingui:{n:'Pingüi',e:'🐧',t:'Hielo'},lagar:{n:'Lagartín',e:'🦎',t:'Fuego'},brincos:{n:'Brincos',e:'🐸',t:'Planta'},rexi:{n:'Rexi',e:'🦖',t:'Roca'},dracolor:{n:'Dracolor',e:'🐲',t:'Estrella'}
+const TYPES={
+ Fuego:{c:'#F26B3A',l:'#FFD9B8',d:'#C9471F',x:'#FFC24B'},Agua:{c:'#3E9BE0',l:'#CDEBFF',d:'#1F6FB0',x:'#8FD6FF'},
+ Planta:{c:'#4FB86A',l:'#D6F5C4',d:'#2E8A48',x:'#F48FB1'},Rayo:{c:'#F5C443',l:'#FFF4C2',d:'#C98F12',x:'#7B5CFF'},
+ Roca:{c:'#A88A6A',l:'#EADCC9',d:'#76604A',x:'#B48CF0'},Aire:{c:'#9AD0EE',l:'#F2FAFF',d:'#5A9EC6',x:'#FFFFFF'},
+ Hielo:{c:'#8FD9EC',l:'#EAFBFF',d:'#3FA3C2',x:'#FFFFFF'},Estrella:{c:'#9B7BE8',l:'#E6DCFF',d:'#6A4BC4',x:'#FFD447'}
 };
+function monSVG(t,v,stage){const P=TYPES[t],D='#2B2B3A',s2=stage===2;
+ const body=[
+  {d:'<circle cx="50" cy="62" r="26"/>',top:36},
+  {d:'<ellipse cx="50" cy="60" rx="23" ry="29"/>',top:31},
+  {d:'<ellipse cx="50" cy="65" rx="30" ry="22"/>',top:43},
+  {d:'<path d="M50 30 C67 30 75 50 75 64 C75 80 64 88 50 88 C36 88 25 80 25 64 C25 50 33 30 50 30Z"/>',top:30}][v];
+ const T=body.top,ey=T+(v===2?11:17),st=`stroke="${D}" stroke-width="2.5" stroke-linejoin="round"`;
+ let back='',front='';
+ const star=(cx,cy,r,f)=>{let p='';for(let i=0;i<10;i++){const a=Math.PI/5*i-Math.PI/2,rr=i%2?r*.45:r;p+=`${(cx+rr*Math.cos(a)).toFixed(1)},${(cy+rr*Math.sin(a)).toFixed(1)} `}return `<polygon points="${p}" fill="${f}" ${st}/>`};
+ if(t==='Fuego'){front+=`<path d="M50 ${T-20} C60 ${T-8} 61 ${T+3} 50 ${T+5} C39 ${T+3} 40 ${T-8} 50 ${T-20}Z" fill="${P.c}" ${st}/><path d="M50 ${T-10} C55 ${T-3} 55 ${T+2} 50 ${T+3} C45 ${T+2} 45 ${T-3} 50 ${T-10}Z" fill="${P.x}"/>`;
+  if(s2)back+=`<path d="M72 74 C88 70 90 52 84 44 C84 56 78 60 72 62Z" fill="${P.x}" ${st}/>`}
+ if(t==='Agua'){front+=`<path d="M41 ${T+3} Q50 ${T-17} 59 ${T+3}Z" fill="${P.d}" ${st}/>`;
+  if(s2)back+=`<path d="M24 56 Q8 50 12 38 Q20 50 28 50Z" fill="${P.d}" ${st}/><path d="M76 56 Q92 50 88 38 Q80 50 72 50Z" fill="${P.d}" ${st}/><path d="M70 80 Q86 84 90 72 Q82 76 74 72Z" fill="${P.x}" ${st}/>`}
+ if(t==='Planta'){front+=`<path d="M50 ${T+1} L50 ${T-9}" stroke="${D}" stroke-width="2.5"/><ellipse cx="43" cy="${T-12}" rx="8" ry="4.5" transform="rotate(-25 43 ${T-12})" fill="${P.d}" ${st}/><ellipse cx="57" cy="${T-12}" rx="8" ry="4.5" transform="rotate(25 57 ${T-12})" fill="${P.d}" ${st}/>`;
+  if(s2){let f='';for(let i=0;i<5;i++){const a=Math.PI*2/5*i;f+=`<circle cx="${(50+6*Math.cos(a)).toFixed(1)}" cy="${(T-20+6*Math.sin(a)).toFixed(1)}" r="4.5" fill="${P.x}" ${st}/>`}front+=f+`<circle cx="50" cy="${T-20}" r="3.5" fill="#FFD447" ${st}/>`}}
+ if(t==='Rayo'){const z=(x,dir)=>`<polygon points="${x},${T+4} ${x+dir*-4},${T-6} ${x+dir*2},${T-7} ${x+dir*-3},${T-19} ${x+dir*8},${T-5} ${x+dir*2},${T-4} ${x+dir*5},${T+3}" fill="${P.d}" ${st}/>`;front+=z(40,1)+z(60,-1);
+  if(s2)back+=`<polygon points="72,70 88,60 82,70 94,66 78,84 82,74 70,78" fill="${P.x}" ${st}/>`}
+ if(t==='Roca'){front+=`<polygon points="36,${T+8} 40,${T-5} 46,${T+3}" fill="${P.d}" ${st}/><polygon points="45,${T+3} 50,${T-10} 55,${T+3}" fill="${P.d}" ${st}/><polygon points="54,${T+3} 60,${T-5} 64,${T+8}" fill="${P.d}" ${st}/>`;
+  if(s2)front+=`<polygon points="50,${ey-12} 54,${ey-8} 50,${ey-4} 46,${ey-8}" fill="${P.x}" ${st}/>`+`<polygon points="28,${T+16} 22,${T+6} 32,${T+10}" fill="${P.d}" ${st}/><polygon points="72,${T+16} 78,${T+6} 68,${T+10}" fill="${P.d}" ${st}/>`}
+ if(t==='Aire'){const w=s2?16:11;back+=`<ellipse cx="${26-w/3}" cy="58" rx="${w}" ry="${w*.55}" transform="rotate(-25 ${26-w/3} 58)" fill="${P.l}" ${st}/><ellipse cx="${74+w/3}" cy="58" rx="${w}" ry="${w*.55}" transform="rotate(25 ${74+w/3} 58)" fill="${P.l}" ${st}/>`;
+  front+=`<path d="M50 ${T+2} C46 ${T-8} 54 ${T-12} 56 ${T-6}" fill="none" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/>`;if(s2)front+=`<path d="M46 ${T+2} C40 ${T-10} 50 ${T-18} 54 ${T-12}" fill="none" stroke="${P.d}" stroke-width="3" stroke-linecap="round"/>`}
+ if(t==='Hielo'){front+=`<polygon points="40,${T+5} 35,${T-12} 45,${T+2}" fill="${P.x}" ${st}/><polygon points="60,${T+5} 65,${T-12} 55,${T+2}" fill="${P.x}" ${st}/>`;
+  if(s2){const cy=T-12;front+=`<g stroke="${P.d}" stroke-width="2.5" stroke-linecap="round"><path d="M50 ${cy-8} L50 ${cy+8}"/><path d="M43 ${cy-4} L57 ${cy+4}"/><path d="M43 ${cy+4} L57 ${cy-4}"/></g>`}}
+ if(t==='Estrella'){front+=`<path d="M50 ${T+1} L50 ${T-8}" stroke="${D}" stroke-width="2.5"/>`+star(50,T-13,7,P.x);
+  if(s2)back+=`<ellipse cx="50" cy="${T-13}" rx="16" ry="5" fill="none" stroke="${P.x}" stroke-width="3"/>`,front+=star(20,40,4,P.x)+star(82,34,3.5,P.x)}
+ if(v===2&&!s2)back+=`<path d="M76 70 C90 70 92 56 86 52" fill="none" stroke="${D}" stroke-width="7" stroke-linecap="round"/><path d="M76 70 C90 70 92 56 86 52" fill="none" stroke="${P.c}" stroke-width="3.5" stroke-linecap="round"/>`;
+ if(v===0&&t!=='Rayo'&&t!=='Hielo')back+=`<circle cx="29" cy="${T+8}" r="6" fill="${P.d}" ${st}/><circle cx="71" cy="${T+8}" r="6" fill="${P.d}" ${st}/>`;
+ let pat='';if(v===1)pat=`<circle cx="32" cy="66" r="3.5" fill="${P.l}"/><circle cx="68" cy="66" r="3.5" fill="${P.l}"/><circle cx="30" cy="56" r="2.5" fill="${P.l}"/><circle cx="70" cy="56" r="2.5" fill="${P.l}"/>`;
+ if(v===2)pat=`<path d="M44 ${T+3} Q50 ${T+6} 56 ${T+3}" fill="none" stroke="${P.d}" stroke-width="2.5" stroke-linecap="round"/>`;
+ const er=v===3?7.5:6.5,eye=x=>`<ellipse cx="${x}" cy="${ey}" rx="${er}" ry="${er+1}" fill="#fff" stroke="${D}" stroke-width="1.8"/><circle cx="${x+1}" cy="${ey+1.5}" r="${er*.55}" fill="${D}"/><circle cx="${x+2.6}" cy="${ey-.5}" r="1.5" fill="#fff"/>`;
+ const ex=v===2?11:9;let face=eye(50-ex)+eye(50+ex)+`<path d="M46 ${ey+10} Q50 ${ey+14} 54 ${ey+10}" fill="none" stroke="${D}" stroke-width="2.2" stroke-linecap="round"/>`;
+ if(s2)face+=`<path d="M${50-ex-6} ${ey-10} L${50-ex+4} ${ey-8}" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/><path d="M${50+ex+6} ${ey-10} L${50+ex-4} ${ey-8}" stroke="${D}" stroke-width="2.5" stroke-linecap="round"/>`;
+ const k=s2?1:.84;
+ return `<svg class="rb" viewBox="0 0 100 100" aria-hidden="true"><g transform="translate(50 92) scale(${k}) translate(-50 -92)">${back}<ellipse cx="40" cy="88" rx="7" ry="4" fill="${P.d}" ${st}/><ellipse cx="60" cy="88" rx="7" ry="4" fill="${P.d}" ${st}/><g fill="${P.c}" ${st}>${body.d}</g><ellipse cx="50" cy="${v===2?72:70}" rx="${v===2?16:13}" ry="${v===2?9:12}" fill="${P.l}"/>${pat}${front}${face}</g></svg>`}
+const MONDEF={
+ llamin:['Llamín','Fuego',0,'Brasero'],gotin:['Gotín','Agua',1,'Oleaje'],brotin:['Brotín','Planta',3,'Selvón'],voltin:['Voltín','Rayo',2,'Tronador'],piedrin:['Piedrín','Roca',0,'Peñasco'],lucerito:['Lucerito','Estrella',3,'Estelón'],
+ plumin:['Plumín','Aire',1,'Ventarrón'],burbujo:['Burbujo','Agua',2,null],musguin:['Musguín','Planta',0,null],destellin:['Destellín','Estrella',1,null],
+ escarchin:['Escarchín','Hielo',3,'Glaciar'],brasita:['Brasita','Fuego',2,null],brisita:['Brisita','Aire',0,null],rocadin:['Rocadín','Roca',2,null],chispin:['Chispín','Rayo',3,null],coralin:['Coralín','Agua',0,null],astrin:['Astrín','Estrella',2,null]
+};
+
+const MONS={};Object.entries(MONDEF).forEach(([k,[n,t,v,evo]])=>{MONS[k]={n,t,v,evo,e:monSVG(t,v,1),e2:evo?monSVG(t,v,2):null}});
+const EVOS={num1:'llamin',num3:'gotin',num5:'voltin',vow1:'plumin',vow3:'piedrin',abc1:'escarchin',abc3:'brotin',abc6:'lucerito'};
+function shown(k){const m=MONS[k];return S.evolved.includes(k)&&m.evo?{n:m.evo,e:m.e2,t:m.t}:m}
 const MEDALS=[
  {id:'hoja',n:'Medalla Hoja',e:'🍃',c:'#5FBF6E',at:'num1'},{id:'gota',n:'Medalla Gota',e:'💧',c:'#4DA3E0',at:'num3'},{id:'llama',n:'Medalla Llama',e:'🔥',c:'#F07A45',at:'num5'},
  {id:'rayo',n:'Medalla Rayo',e:'⚡',c:'#F5C842',at:'vow1'},{id:'roca',n:'Medalla Roca',e:'🪨',c:'#B08A64',at:'vow3'},
@@ -229,7 +279,7 @@ const OBJS=['🍎','🐟','⭐','🎈','🐞','🍓','🚗'];
 /* ---------- estado ---------- */
 const KEY='pasitos-v1';
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
-let S=Object.assign({stars:{},box:{},caught:[],medals:[],mic:true,unlockAll:false},load());S.caught=S.caught||[];S.medals=S.medals||[];
+let S=Object.assign({stars:{},box:{},caught:[],medals:[],mic:true,unlockAll:false},load());S.caught=(S.caught||[]).filter(k=>MONS[k]);S.medals=S.medals||[];S.evolved=(S.evolved||[]).filter(k=>MONS[k]);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const starsOf=(t,i)=>S.stars[t+i]||0;
 function levelOpen(t,i){if(S.unlockAll)return true;if(t==='abc'&&!trackOpen('abc'))return false;return i===0||starsOf(t,i-1)>=2}
@@ -316,7 +366,7 @@ function toast(msg){document.querySelector('.toast')?.remove();const d=document.
 /* ---------- pantallas ---------- */
 let view='home',curTrack='num';
 function go(v,t){view=v;if(t)curTrack=t;hush();stepToken++;render()}
-function render(){if(!S.name&&view!=='name')view='name';({name:renderName,home:renderHome,map:renderMap,lesson:()=>renderLesson(),result:renderResult,capture:renderCapture})[view]()}
+function render(){if(!S.name&&view!=='name')view='name';({name:renderName,home:renderHome,map:renderMap,lesson:()=>renderLesson(),result:renderResult,capture:renderCapture,evolve:renderEvolve})[view]()}
 
 function renderName(){
  const mic=micOn();
@@ -349,7 +399,7 @@ function renderHome(){
   <span><b>${t.t}</b><small>${k==='abc'&&open?'Las consonantes, en grupos':t.sub}</small><div class="bar"><i style="width:${done/lv.length*100}%;background:${t.c}"></i></div><small>${done} de ${lv.length} niveles</small></span></button>`}).join('')}
  ${seen>=3?`<button class="review" data-act="mix"><span style="font-size:36px">🔁</span><span><b>Repaso de hoy</b><small>2 minutos con lo que ya sabe. Ayuda a no olvidar.</small></span></button>`:''}
  <div><div class="eyebrow" style="margin-bottom:10px">Medallas</div><div class="medals">${MEDALS.map(m=>S.medals.includes(m.id)?`<span class="medal" style="--mc:${m.c}" title="${m.n}">${m.e}</span>`:'<span class="medal off" aria-label="Medalla por ganar"></span>').join('')}</div></div>
- <div><div class="eyebrow" style="margin-bottom:8px">Mis criaturas</div><div class="team">${Object.entries(MONS).map(([k,m])=>S.caught.includes(k)?`<span class="mon"><span>${m.e}</span><small>${m.n}</small></span>`:`<span class="mon unk"><span>${m.e}</span><small>???</small></span>`).join('')}</div></div>
+ <div><div class="eyebrow" style="margin-bottom:8px">Mis criaturas</div><div class="team">${Object.entries(MONS).map(([k,m])=>S.caught.includes(k)?`<span class="mon"><span>${shown(k).e}</span><small>${shown(k).n}</small></span>`:`<span class="mon unk"><span>${m.e}</span><small>???</small></span>`).join('')}</div></div>
  </div></section>`;
  const h=document.getElementById('parents');let tm;
  const start=e=>{e.preventDefault();h.classList.add('on');tm=setTimeout(()=>{h.classList.remove('on');openParents()},1400)};
@@ -362,7 +412,7 @@ function renderMap(){
  const t=TRACKS[curTrack],xs=[0,30,52,30,0,22,46];
  app.innerHTML=`<section class="screen"><div class="topbar"><button class="icon-btn" data-act="home" aria-label="Volver">${ICON.back}</button><h2>${t.t}</h2><span style="width:48px"></span></div>
  <div class="scroll"><div class="path">${LEVELS[curTrack].map((l,i)=>{const open=levelOpen(curTrack,i),s=starsOf(curTrack,i);
-  return `<button class="node ${open?'':'locked'}" style="--x:${xs[i%xs.length]};--c:${t.c};--d:${t.d}" data-act="level" data-i="${i}"><span class="disc">${open?l.t:ICON.lock}</span><span class="meta"><b>Nivel ${i+1}</b>${open?starsHTML(s):'<small>Gana 2 estrellas antes</small>'}${(()=>{const m=MONS[l.mon],c=S.caught.includes(l.mon);return `<span class="reward"><span class="${c?'':'shadow'}">${m.e}</span>${c?m.n+' capturado':'Criatura por capturar'}</span>`})()}${MEDALS.filter(md=>md.at===curTrack+i).map(md=>`<span class="reward"><span>${S.medals.includes(md.id)?md.e:'🏅'}</span>${md.n}</span>`).join('')}</span></button>`}).join('')}</div></div></section>`;
+  return `<button class="node ${open?'':'locked'}" style="--x:${xs[i%xs.length]};--c:${t.c};--d:${t.d}" data-act="level" data-i="${i}"><span class="disc">${open?l.t:ICON.lock}</span><span class="meta"><b>Nivel ${i+1}</b>${open?starsHTML(s):'<small>Gana 2 estrellas antes</small>'}${(()=>{const m=shown(l.mon),c=S.caught.includes(l.mon);return `<span class="reward"><span class="${c?'':'shadow'}">${m.e}</span>${c?m.n+' capturado':'Criatura por capturar'}</span>`})()}${MEDALS.filter(md=>md.at===curTrack+i).map(md=>`<span class="reward"><span>${S.medals.includes(md.id)?md.e:'🏅'}</span>${md.n}${EVOS[md.at]?' + evolución':''}</span>`).join('')}</span></button>`}).join('')}</div></div></section>`;
 }
 
 /* ---------- motor de lección ---------- */
@@ -493,13 +543,14 @@ async function onOpt(btn){const st=cur();if(busy)return;const id=btn.dataset.id,
 function onObj(btn){const st=cur();if(btn.classList.contains('counted'))return;st.counted++;btn.classList.add('counted');btn.insertAdjacentHTML('beforeend',`<em>${st.counted}</em>`);sfx.pop();say(NUMW[st.counted])}
 
 function finish(){
- const ratio=L.total?L.first/L.total:1;const stars=ratio>=.9?3:ratio>=.7?2:1;let capture=null,medal=null,escaped=null,key=L.track+L.li;
+ const ratio=L.total?L.first/L.total:1;const stars=ratio>=.9?3:ratio>=.7?2:1;let capture=null,medal=null,escaped=null,evolve=null,key=L.track+L.li;
  if(L.track!=='mix'){S.stars[key]=Math.max(S.stars[key]||0,stars);const mk=LEVELS[L.track][L.li].mon;
-  if(stars>=2){if(!S.caught.includes(mk)){S.caught.push(mk);capture=mk}const md=MEDALS.find(m=>m.at===key);if(md&&!S.medals.includes(md.id)){S.medals.push(md.id);medal=md.id}}
+  if(stars>=2){if(!S.caught.includes(mk)){S.caught.push(mk);capture=mk}const md=MEDALS.find(m=>m.at===key);if(md&&!S.medals.includes(md.id)){S.medals.push(md.id);medal=md.id;const ek=EVOS[key];if(ek&&S.caught.includes(ek)&&!S.evolved.includes(ek)){S.evolved.push(ek);evolve=ek}}}
   else if(!S.caught.includes(mk))escaped=mk}
- save();L.result={stars,capture,medal,escaped,caughtNow:false};
+ save();L.result={stars,capture,medal,escaped,evolve,caughtNow:false,evolvedNow:false};
  if(capture){view='capture';render();sfx.win();say(fmt(`¡Superaste el nivel, {n}! ¡Mira, apareció ${MONS[capture].n}, una criatura de tipo ${MONS[capture].t}! Toca la esfera para lanzarla.`))}
- else showResult()}
+ else afterCapture()}
+function afterCapture(){if(L.result.evolve&&!L.result.evolvedNow){view='evolve';render();const m=MONS[L.result.evolve];say(fmt(`¡Mira, {n}! ¡${m.n} está brillando! Algo le está pasando. Toca el botón para ver qué sucede.`))}else showResult()}
 function showResult(){const r=L.result;view='result';render();if(!r.capture)sfx.win();
  const md=r.medal&&MEDALS.find(m=>m.id===r.medal);const last=md&&S.medals.length===MEDALS.length;
  let t;if(r.stars>=2){t=fmt(`¡Felicitaciones, entrenador {n}! Ganaste ${r.stars} estrellas.`);if(md){t+=` ¡Y ganaste la ${md.n}!`;setTimeout(()=>claps(30,1.6),400)}if(last)t+=fmt(' ¡Ya tienes todas las medallas! ¡Eres un Gran Entrenador, {n}!')}
@@ -513,6 +564,20 @@ function renderCapture(){const m=MONS[L.result.capture];
  <p class="cap-msg" id="capMsg">¡Apareció ${m.n}!</p>
  <div class="cap-stage"><div class="cap-grass"></div><div class="cap-mon" id="capMon">${m.e}</div><button class="ball" id="ball" data-act="throw" aria-label="Lanzar la esfera">${STAR_SVG}</button></div>
  <div id="capAfter" style="min-height:64px;display:flex;align-items:center;justify-content:center"><div class="mic-label">Toca la esfera para lanzarla</div></div></section>`}
+function renderEvolve(){const m=MONS[L.result.evolve];
+ app.innerHTML=`<section class="screen result"><div class="eyebrow">¡Evolución! · Tipo ${m.t}</div>
+ <p class="cap-msg" id="evoMsg">¡${m.n} está brillando!</p>
+ <div class="cap-stage"><div class="cap-grass"></div><div class="cap-mon" id="evoMon">${m.e}</div></div>
+ <div id="evoAfter" style="min-height:64px;display:flex;align-items:center;justify-content:center"><button class="cta" data-act="evolve">✨ ¡Ver qué pasa!</button></div></section>`}
+async function evolveAnim(){if(throwing||L.result.evolvedNow)return;throwing=true;const tok=stepToken,m=MONS[L.result.evolve];hush();
+ const el=document.getElementById('evoMon'),msgEl=document.getElementById('evoMsg');document.getElementById('evoAfter').innerHTML='';
+ el.style.animation='none';el.classList.add('evo-pulse');msgEl.textContent='¡Está cambiando!';
+ for(let k=0;k<6;k++){el.classList.toggle('evo-glow');tone([400+k*90],.12,'triangle');await sleep(380);if(tok!==stepToken)return}
+ el.classList.add('evo-glow');glide(300,1500,.5,'sine',.18);await sleep(500);if(tok!==stepToken)return;
+ el.innerHTML=m.e2;el.classList.remove('evo-glow','evo-pulse');el.style.animation='';tone([784,988,1175,1568],.1);setTimeout(()=>claps(),300);burst();
+ msgEl.textContent=`¡${m.n} ahora es ${m.evo}!`;L.result.evolvedNow=true;throwing=false;
+ document.getElementById('evoAfter').innerHTML='<button class="cta" data-act="afterevo">¡Increíble! Continuar</button>';
+ say(fmt(`¡Increíble, {n}! ¡${m.n} evolucionó y ahora es ${m.evo}! Se hizo más fuerte gracias a tu esfuerzo.`))}
 let throwing=false;
 async function throwBall(){if(throwing||L.result.caughtNow)return;throwing=true;const tok=stepToken,m=MONS[L.result.capture];hush();
  const b=document.getElementById('ball'),mon=document.getElementById('capMon'),msgEl=document.getElementById('capMsg');
@@ -529,6 +594,7 @@ function renderResult(){const {stars,capture,medal,escaped}=L.result,mix=L.track
  app.innerHTML=`<section class="screen result"><div class="eyebrow">${mix?'Repaso terminado':'Nivel '+(L.li+1)+' terminado'}</div>
  <h2>${stars>=2?'¡Felicitaciones'+(S.name?', '+esc(S.name):'')+'!':'¡Buen trabajo'+(S.name?', '+esc(S.name):'')+'!'}</h2><div class="big-stars">${[1,2,3].map(k=>ICON.star(k<=stars)).join('')}</div>
  ${capture?`<div class="reward" style="font-size:16px"><span style="font-size:40px">${MONS[capture].e}</span>${MONS[capture].n} se unió a tu equipo</div>`:''}
+ ${L.result.evolve?`<div class="reward" style="font-size:16px"><span style="font-size:40px">${MONS[L.result.evolve].e2}</span>${MONS[L.result.evolve].n} evolucionó a ${MONS[L.result.evolve].evo}</div>`:''}
  ${md?`<div class="medal-row"><span class="medal big" style="--mc:${md.c}">${md.e}</span><span><div class="eyebrow">¡Medalla nueva!</div><b style="font-family:var(--display);font-size:24px">${md.n}</b>${S.medals.length===MEDALS.length?'<br><b>¡Gran Entrenador!</b>':''}</span></div>`:''}
  ${escaped?`<div class="reward" style="font-size:15px"><span class="shadow" style="font-size:40px">${MONS[escaped].e}</span>Se escapó. ¡Entrena otra vez para capturarlo!</div>`:''}
  ${!mix&&stars<2?'<p style="max-width:30ch;margin:0;font-weight:700;color:var(--ink-soft)">Con 2 estrellas se abre el siguiente nivel y capturas la criatura.</p>':''}
@@ -549,7 +615,7 @@ function openParents(){
  const seen=Object.keys(S.box).filter(id=>ITEM[id]);const strong=seen.filter(id=>S.box[id]>=3).length;
  const d=document.createElement('div');d.className='sheet';
  d.innerHTML=`<div class="sheet-in" role="dialog" aria-label="Panel de padres"><div class="topbar"><h2>Panel de padres</h2><button class="icon-btn" data-x aria-label="Cerrar">${ICON.close}</button></div>
- <p>La aventura motiva con criaturas para capturar y medallas, pero solo se ganan aprendiendo: con 2 estrellas en un nivel se captura su criatura. Cada nivel sigue el mismo orden, basado en prácticas usadas en educación inicial:</p>
+ <p>La aventura motiva con criaturas para capturar, evoluciones y medallas, pero solo se ganan aprendiendo: con 2 estrellas en un nivel se captura su criatura. Cada nivel sigue el mismo orden, basado en prácticas usadas en educación inicial:</p>
  <ol><li><b>Modelar sin error.</b> Primero ve y escucha el símbolo nuevo con su cantidad o su dibujo, y lo repite. No se puede fallar en esta parte.</li>
  <li><b>Reconocer, luego recordar.</b> Primero elige entre opciones (más fácil), después lo dice solo con el micrófono (más difícil).</li>
  <li><b>Pistas que se retiran.</b> Al segundo error se ilumina la respuesta correcta, así nunca se queda atascado.</li>
@@ -570,7 +636,7 @@ function openParents(){
     out.textContent=alts.length?'Entendí: '+alts.slice(0,5).join(' | '):(window.__lastVoiced?'Te escuché hablar, pero Google no reconoció la palabra':'No escuché voz')+(window.__lastSrErr?' (código '+window.__lastSrErr+')':'')+'. En la lección esto ya cuenta como intento.'});return}
   if(e.target.closest('[data-testvoice]')){const sel=d.querySelector('#voiceSel');if(sel){NB.setVoice(sel.value);S.voice=sel.value;save();say(fmt('¡Hola, entrenador {n}! Así suena mi voz. Vamos a aprender los números: uno, dos, tres.'))}return}
   if(e.target.closest('[data-rename]')){d.remove();view='name';render();return}
-  const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
+  const r=e.target.closest('[data-reset]');if(r){if(r.dataset.sure){S={stars:{},box:{},caught:[],medals:[],evolved:[],mic:S.mic,unlockAll:false,name:S.name};save();d.remove();render();toast('Progreso borrado')}else{r.dataset.sure=1;r.textContent='Toca otra vez para confirmar'}}
  })}
 
 /* ---------- eventos ---------- */
@@ -578,7 +644,9 @@ app.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)re
  if(a==='track'){const t=b.dataset.t;if(!trackOpen(t)){toast('Primero gana 2 estrellas en el nivel O U de las vocales.');say(fmt('Primero terminemos las vocales, entrenador {n}.'));return}sfx.tap();go('map',t);say(fmt(`¡Vamos con ${t==='num'?'los números':t==='vow'?'las vocales':'el abecedario'}, entrenador {n}! Cada nivel tiene una criatura esperándote. Elige un nivel.`))}
  else if(a==='home')go('home');
  else if(a==='throw')throwBall();
- else if(a==='aftercap'){stepToken++;showResult()}
+ else if(a==='aftercap'){stepToken++;afterCapture()}
+ else if(a==='evolve')evolveAnim();
+ else if(a==='afterevo'){stepToken++;showResult()}
  else if(a==='namesave')saveName();
  else if(a==='namehear'){const v=cleanName(document.getElementById('kidName').value);say(v?`¡Hola, ${v}!`:'Escribe tu nombre.')}
  else if(a==='namemic')nameMic();
